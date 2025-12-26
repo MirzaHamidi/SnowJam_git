@@ -33,4 +33,3 @@ func set_crosshair_color(color: Color) -> void:
 		crosshair_line_h.default_color = color
 	if crosshair_line_v:
 		crosshair_line_v.default_color = color
-

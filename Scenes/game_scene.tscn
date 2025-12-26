@@ -1,10 +1,12 @@
-[gd_scene load_steps=12 format=3 uid="uid://di38xas1mb7t4"]
+[gd_scene load_steps=14 format=3 uid="uid://di38xas1mb7t4"]
 
 [ext_resource type="Script" uid="uid://c7s3e101nen7j" path="res://Scripts/game_scene.gd" id="1_aloqd"]
 [ext_resource type="PackedScene" uid="uid://dilmi138y4khk" path="res://Scenes/PlayerScenes/player.tscn" id="2_b6fju"]
 [ext_resource type="Texture2D" uid="uid://be82aw7hsys1t" path="res://a12a8af2-abe7-42e7-8bbf-784c39d92d6e.jpg" id="2_fiftr"]
 [ext_resource type="PackedScene" uid="uid://dgpoc40wpb7fj" path="res://Scenes/Test/crosshair.tscn" id="4_crosshair"]
 [ext_resource type="PackedScene" uid="uid://4kur8mdstp8t" path="res://Scenes/Test/cubetest.tscn" id="5_1ixah"]
+[ext_resource type="Script" uid="uid://de4junx3q6spd" path="res://Scripts/EnemySpawner.gd" id="6_rgj8m"]
+[ext_resource type="PackedScene" uid="uid://c2ko50kivid8r" path="res://Scenes/enemy.tscn" id="7_2fmhe"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_x87qo"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -52,3 +54,7 @@ shape = SubResource("ConcavePolygonShape3D_b6fju")
 [node name="CrosshairUI" parent="." instance=ExtResource("4_crosshair")]
 
 [node name="cubetest" parent="." instance=ExtResource("5_1ixah")]
+
+[node name="enemyspawner" type="Node3D" parent="."]
+script = ExtResource("6_rgj8m")
+enemy_scene = ExtResource("7_2fmhe")

@@ -1,23 +1,123 @@
-[gd_scene load_steps=7 format=3 uid="uid://dilmi138y4khk"]
+[gd_scene load_steps=17 format=3 uid="uid://dilmi138y4khk"]
 
 [ext_resource type="Script" uid="uid://c3xfo4tp0gyqo" path="res://Scripts/PlayerScripts/player.gd" id="1_onrkg"]
 [ext_resource type="AudioStream" uid="uid://bcboy75a2ro7a" path="res://Assets/müzikler/müzik 2.wav" id="2_2oab2"]
 [ext_resource type="PackedScene" uid="uid://dgpoc40wpb7fj" path="res://Scenes/Test/crosshair.tscn" id="3_2oab2"]
+[ext_resource type="PackedScene" uid="uid://bl4b1ypu2o4m3" path="res://Scenes/asa.tscn" id="4_pu5dk"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_4flbx"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_magic"]
+lifetime_randomness = 1.0
+inherit_velocity_ratio = 0.407
 direction = Vector3(0, 0, -1)
-spread = 2.0
-initial_velocity_min = 20.0
-initial_velocity_max = 25.0
-gravity = Vector3(0, -0.3, 0)
-scale_min = 0.15
-scale_max = 0.25
+spread = 180.0
+initial_velocity_max = 782.35
+gravity = Vector3(0, 47.43, 0)
+scale_min = 0.14999999
+scale_max = 11.91
 color = Color(0.6, 0.2, 1, 0.9)
+turbulence_noise_speed_random = 2.65
 
-[sub_resource type="QuadMesh" id="QuadMesh_magic"]
-size = Vector2(0.1, 0.1)
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2oab2"]
+transparency = 1
+albedo_color = Color(1, 0.50980395, 1, 0.24313726)
+grow = true
+grow_amount = -3.084
+
+[sub_resource type="BoxMesh" id="BoxMesh_2oab2"]
+material = SubResource("StandardMaterial3D_2oab2")
+size = Vector3(0.22, 0.17, 0.205)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pu5dk"]
+albedo_color = Color(0.6392157, 0.34901962, 1, 1)
+
+[sub_resource type="Curve" id="Curve_2oab2"]
+_limits = [-360.0, 360.0, 0.50757575, 0.92424244]
+_data = [Vector2(0.50757575, -157.7528), 0.0, 0.0, 0, 0, Vector2(0.6527778, -214.38202), 0.0, 0.0, 0, 0, Vector2(0.92424244, 311.4607), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_pu5dk"]
+curve = SubResource("Curve_2oab2")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_sn0nf"]
+lifetime_randomness = 1.0
+emission_shape_offset = Vector3(0, -2.6, 0.475)
+emission_shape = 1
+emission_sphere_radius = 8.79
+angle_min = -612.4
+angle_max = 609.9
+angle_curve = SubResource("CurveTexture_pu5dk")
+inherit_velocity_ratio = 0.663
+direction = Vector3(0, 0, -8.475)
+spread = 5.306
+initial_velocity_min = 126.979996
+initial_velocity_max = 770.05
+turbulence_noise_speed_random = 2.01
+
+[sub_resource type="BoxMesh" id="BoxMesh_c45ss"]
+uv2_padding = 19.95
+
+[sub_resource type="Animation" id="Animation_pu5dk"]
+resource_name = "asa_attack"
+length = 0.894
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.23333333, 0.422, 0.7),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Vector3(0.27, 0.18, -0.66), Vector3(0.27, -0.045, -0.66), Vector3(0.505, -0.045, -0.82), Vector3(0.27, 0.18, -0.66)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.23333333, 0.422, 0.7),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Vector3(0.5497787, -2.4783676, -3.1415927), Vector3(1.1780972, -2.8710666, -3.1817353), Vector3(1.0995574, -3.5220745, -3.387684), Vector3(0.5497787, -2.4783676, -3.1415927)]
+}
+
+[sub_resource type="Animation" id="Animation_sn0nf"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0.27, 0.18, -0.66)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0.5497787, -2.4783676, -3.1415927)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_c45ss"]
+_data = {
+&"RESET": SubResource("Animation_sn0nf"),
+&"asa_attack": SubResource("Animation_pu5dk")
+}
 
 [node name="Player" type="Node3D"]
 
@@ -40,11 +140,38 @@ autoplay = true
 
 [node name="CrosshairUI" parent="CharacterBody3D/Camera3D" instance=ExtResource("3_2oab2")]
 
-[node name="MagicParticles" type="GPUParticles3D" parent="CharacterBody3D/Camera3D"]
+[node name="MagicParticles2" type="GPUParticles3D" parent="CharacterBody3D/Camera3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.5)
 emitting = false
-amount = 100
+amount = 200
 lifetime = 0.8
 one_shot = true
+explosiveness = 1.0
+randomness = 1.0
+visibility_aabb = AABB(-4, -3.565, -40, 40.18, -10.25, 30.14)
+trail_enabled = true
+trail_lifetime = 10.0
 process_material = SubResource("ParticleProcessMaterial_magic")
-draw_pass_1 = SubResource("QuadMesh_magic")
+draw_pass_1 = SubResource("BoxMesh_2oab2")
+
+[node name="MagicParticles" type="GPUParticles3D" parent="CharacterBody3D/Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+material_override = SubResource("StandardMaterial3D_pu5dk")
+emitting = false
+amount = 200
+lifetime = 0.5700000000000001
+one_shot = true
+explosiveness = 1.0
+visibility_aabb = AABB(-4, -4, -4, 40.18, 25.29, 30.14)
+trail_enabled = true
+trail_lifetime = 7.699999999999999
+process_material = SubResource("ParticleProcessMaterial_sn0nf")
+draw_pass_1 = SubResource("BoxMesh_c45ss")
+
+[node name="asa" parent="CharacterBody3D/Camera3D" instance=ExtResource("4_pu5dk")]
+transform = Transform3D(0.2482234, 0.101329915, -0.16535537, 2.3480153e-08, -0.26858166, -0.16458704, -0.19393337, 0.12969634, -0.21164523, 0.27, 0.18, -0.66)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="CharacterBody3D/Camera3D/asa"]
+libraries = {
+&"": SubResource("AnimationLibrary_c45ss")
+}

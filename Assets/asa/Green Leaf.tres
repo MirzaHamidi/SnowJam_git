@@ -1,0 +1,244 @@
+[gd_resource type="StandardMaterial3D" load_steps=4 format=3 uid="uid://bhpfrfcfjlk31"]
+
+[ext_resource type="Texture2D" uid="uid://cama8o8xgndh1" path="res://Assets/asa/textures/leaves-1_diffuse.jpg" id="1_nqyy6"]
+[ext_resource type="Texture2D" uid="uid://dbqy8r3gu6bgk" path="res://Assets/asa/textures/leaves-1_roughness.jpg" id="2_328xu"]
+[ext_resource type="Texture2D" uid="uid://soxeyxgkcqjr" path="res://Assets/asa/textures/leaves-1_normal.jpg" id="3_nqyy6"]
+
+[resource]
+resource_name = "Green Leaf"
+cull_mode = 2
+albedo_texture = ExtResource("1_nqyy6")
+metallic_texture = ExtResource("2_328xu")
+metallic_texture_channel = 2
+roughness_texture = ExtResource("2_328xu")
+roughness_texture_channel = 1
+normal_enabled = true
+normal_texture = ExtResource("3_nqyy6")
+metadata/extras = {
+"asset_data": {
+"access": "free",
+"accessLabel": "Free Plan",
+"addonVersion": "3.9.0",
+"assetBaseId": "18cdd8e5-d4e5-4663-b911-240a703acfc0",
+"assetType": "material",
+"author": {
+"aboutMe": "I am a Blender animator, modeller as well as a digital imaging specialist (Photoshop, since 1998).",
+"aboutMeUrl": "https://www.turningturnip.co.uk",
+"avatar128": "/avatar-redirect/f27f13f1-fabb-4c68-a841-9fda3c707246/128/",
+"firstName": "James",
+"fullName": "James Middleton",
+"gravatarHash": "08d08063b99022fda90e8477a0b502f5",
+"id": "33950",
+"lastName": "Middleton"
+},
+"available_resolutions": [512.0, 1024.0, 2048.0],
+"basePrice": "",
+"canDownload": true,
+"canDownloadError": true,
+"category": "organic",
+"created": "2024-07-05T16:43:52.991193+02:00",
+"description": "A bright green leaf texture. 2K PBR translucent leaves texture - tiling.",
+"dictParameters": {
+"addons": true,
+"condition": "new",
+"engine": "cycles",
+"imageAltTextGen4v": "Bright green leaf PBR material preview for 3D Blender, high-quality 2K resolution tiling texture.",
+"joinBlenderkitDiscounts": true,
+"materialStyle": "realistic",
+"megapixels": 12.0,
+"nodeCount": 13.0,
+"pbrType": "metallic",
+"procedural": false,
+"purePbr": true,
+"sexualizedContent": false,
+"shaders": ["add shader", "translucent", "principled"],
+"textureCount": 4.0,
+"textureResolutionMax": 2048.0,
+"textureResolutionMin": 512.0,
+"textureSizeMeters": 0.3,
+"uv": false
+},
+"displayName": "Leaf",
+"downloaded": 0.0,
+"files": [{
+"created": "2024-07-05T16:44:12.028588+02:00",
+"downloadUrl": "https://www.blenderkit.com/api/v1/downloads/416268/",
+"fileThumbnail": "",
+"fileThumbnailLarge": "",
+"fileType": "blend",
+"fileUploadSize": 13726290.0,
+"filename": "assets/5b9b9455eeff4c10b8184550ec28adef/files/blend_9b119030-179c-43a4-9ccc-4bc1ae247fef.blend",
+"modified": "2024-09-05T21:22:13.538934+02:00",
+"resolution": 0.0,
+"thumbnailMiddleUrl": "",
+"thumbnailSmallUrl": "",
+"url": ""
+}, {
+"created": "2024-07-07T06:38:56.128015+02:00",
+"downloadUrl": "https://www.blenderkit.com/api/v1/downloads/417107/",
+"fileThumbnail": "",
+"fileThumbnailLarge": "",
+"fileType": "resolution_0_5K",
+"fileUploadSize": 469842.0,
+"filename": "assets/5b9b9455eeff4c10b8184550ec28adef/files/resolution_0_5K_e8cd1676-bfa4-44d0-9471-a0e94a6e3b41.blend",
+"modified": "2024-09-05T21:22:13.562192+02:00",
+"resolution": 0.0,
+"thumbnailMiddleUrl": "",
+"thumbnailSmallUrl": "",
+"url": ""
+}, {
+"created": "2024-07-07T06:38:55.095338+02:00",
+"downloadUrl": "https://www.blenderkit.com/api/v1/downloads/417106/",
+"fileThumbnail": "",
+"fileThumbnailLarge": "",
+"fileType": "resolution_1K",
+"fileUploadSize": 1270294.0,
+"filename": "assets/5b9b9455eeff4c10b8184550ec28adef/files/resolution_1K_a80ca5dc-b259-4bd6-a61c-f57bd0d84ffe.blend",
+"modified": "2024-09-05T21:22:13.584358+02:00",
+"resolution": 0.0,
+"thumbnailMiddleUrl": "",
+"thumbnailSmallUrl": "",
+"url": ""
+}, {
+"created": "2024-07-07T06:38:53.812804+02:00",
+"downloadUrl": "https://www.blenderkit.com/api/v1/downloads/417105/",
+"fileThumbnail": "",
+"fileThumbnailLarge": "",
+"fileType": "resolution_2K",
+"fileUploadSize": 3542086.0,
+"file_name": "C:\\Users\\W11\\blenderkit_data\\materials\\green-leaf_5b9b9455-eeff-4c10-b818-4550ec28adef\\green-leaf_2K_3266a018-e9fd-403a-aac0-e0fe53dd63ec.blend",
+"filename": "assets/5b9b9455eeff4c10b8184550ec28adef/files/resolution_2K_3266a018-e9fd-403a-aac0-e0fe53dd63ec.blend",
+"modified": "2024-09-05T21:22:13.606584+02:00",
+"resolution": 0.0,
+"thumbnailMiddleUrl": "",
+"thumbnailSmallUrl": "",
+"url": "https://assets.blenderkit.com/assets/5b9b9455eeff4c10b8184550ec28adef/files/resolution_2K_3266a018-e9fd-403a-aac0-e0fe53dd63ec.blend?verify=1766785760-4ILUfnIqE5AEyAFoeRBkM6PH10V7ASRoAC82HxUtosY%3D"
+}, {
+"created": "2024-07-05T16:56:54.922103+02:00",
+"downloadUrl": "https://www.blenderkit.com/api/v1/downloads/416279/",
+"fileThumbnail": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.96x96_q85_crop-%2C.png",
+"fileThumbnailLarge": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.1024x1024_q85_crop-%2C.png",
+"fileType": "thumbnail",
+"fileUploadSize": 1104707.0,
+"filename": "assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png",
+"modified": "2024-09-05T21:22:13.629695+02:00",
+"resolution": 0.0,
+"thumbnailMiddleUrl": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.512x512_q85_crop-%2C.png",
+"thumbnailSmallUrl": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.256x256_q85_crop-%2C.png",
+"url": ""
+}],
+"filesSize": 19641.0,
+"id": "5b9b9455-eeff-4c10-b818-4550ec28adef",
+"isForSale": false,
+"isFree": true,
+"isPrivate": false,
+"lastAnimatedThumbnailUpload": null,
+"lastBlendUpload": "2024-07-05T14:44:12.028588+00:00",
+"lastGltfGodotUpload": null,
+"lastGltfUpload": null,
+"lastPhotoThumbnailUpload": null,
+"lastResolutionUpload": "2024-07-07T04:38:56.128015+00:00",
+"lastThumbnailUpload": "2024-07-05T14:56:54.922103+00:00",
+"lastUserInteraction": "2024-07-05T16:44:12.407612+02:00",
+"lastVideoUpload": null,
+"lastZipFileUpload": "",
+"license": "royalty_free",
+"max_resolution": 2048.0,
+"name": "Green Leaf",
+"pk": 98576.0,
+"ratingsAverage": {
+"bookmarks": 0.9850746268656716,
+"quality": 9.0,
+"virtualPrice": null,
+"workingHours": 0.6000000000000001
+},
+"ratingsCount": {
+"bookmarks": 67.0,
+"quality": 1.0,
+"virtualPrice": 0.0,
+"workingHours": 2.0
+},
+"ratingsMedian": {
+"bookmarks": 1.0,
+"quality": 9.0,
+"virtualPrice": null,
+"workingHours": 0.6000000000000001
+},
+"ratingsSum": {
+"bookmarks": 66.0,
+"quality": 9.0,
+"score": 54.0,
+"virtualPrice": null,
+"workingHours": 1.2
+},
+"resolution": "resolution_2K",
+"score": 54.0,
+"showMarketingLabels": true,
+"sourceAppName": "blender",
+"sourceAppVersion": "4.1.1",
+"tags": ["leaf", "green", "leaves", "tiling", "translucent"],
+"texture_size_meters": 0.3,
+"thumbnail": "thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.512x512_q85_crop-%2C.png.webp",
+"thumbnailLargeUrl": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.1024x1024_q85_crop-%2C.png",
+"thumbnailLargeUrlNonsquared": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.1024x1024_q85.png",
+"thumbnailLargeUrlNonsquaredWebp": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.1024x1024_q85.png.webp?webp_generated=1725564136",
+"thumbnailLargeUrlWebp": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.1024x1024_q85_crop-%2C.png.webp?webp_generated=1725564136",
+"thumbnailMiddleUrl": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.512x512_q85_crop-%2C.png",
+"thumbnailMiddleUrlNonsquared": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.512x512_q85.png",
+"thumbnailMiddleUrlNonsquaredWebp": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.512x512_q85.png.webp?webp_generated=1725564136",
+"thumbnailMiddleUrlWebp": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.512x512_q85_crop-%2C.png.webp?webp_generated=1725564136",
+"thumbnailSmallUrl": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.256x256_q85_crop-%2C.png",
+"thumbnailSmallUrlNonsquared": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.256x256_q85.png",
+"thumbnailSmallUrlNonsquaredWebp": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.256x256_q85.png.webp?webp_generated=1725564136",
+"thumbnailSmallUrlWebp": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.256x256_q85_crop-%2C.png.webp?webp_generated=1725564136",
+"thumbnailXlargeUrl": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.2048x2048_q85_crop-%2C.png",
+"thumbnailXlargeUrlNonsquared": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.2048x2048_q85.png",
+"thumbnailXlargeUrlNonsquaredWebp": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.2048x2048_q85.png.webp?webp_generated=1725564136",
+"thumbnailXlargeUrlWebp": "https://public.blenderkit.com/thumbnails/assets/5b9b9455eeff4c10b8184550ec28adef/files/thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.2048x2048_q85_crop-%2C.png.webp?webp_generated=1725564136",
+"thumbnail_small": "thumbnail_bdcfc17a-4a02-4dbf-bbd7-0a029a2b6aba.png.256x256_q85_crop-%2C.png.webp",
+"tooltip_data": {
+"aname": "Leaf",
+"author_text": "by James Middleton",
+"price_color": [1.0, 1.0, 1.0, 0.9],
+"price_text": "",
+"quality": "9"
+},
+"url": "https://www.blenderkit.com/api/v1/assets/5b9b9455-eeff-4c10-b818-4550ec28adef/",
+"verificationStatus": "validated",
+"versionNumber": 1.0,
+"videoLink": "",
+"webpGeneratedTimestamp": 1725564136.0
+},
+"blenderkit": {
+"asset_base_id": "18cdd8e5-d4e5-4663-b911-240a703acfc0",
+"category": 20.0,
+"description": "A bright green leaf texture. 2K PBR translucent leaves texture - tiling.",
+"has_thumbnail": 1.0,
+"id": "5b9b9455-eeff-4c10-b818-4550ec28adef",
+"is_generating_thumbnail": 0.0,
+"is_procedural": 0.0,
+"name": "Green Leaf",
+"name_changed": 1.0,
+"name_old": "Green Leaf",
+"node_count": 13.0,
+"pbr": 1.0,
+"report": "",
+"shaders": "add shader, translucent, principled, ",
+"tags": "leaf, green, leaves, tiling, translucent",
+"texture_count": 4.0,
+"texture_resolution_max": 2048.0,
+"texture_resolution_min": 512.0,
+"texture_size_meters": 0.3,
+"thumbnail": "//green_leaf.png",
+"thumbnail_generating_state": "",
+"thumbnail_generator_type": 1.0,
+"thumbnail_samples": 20.0,
+"thumbnail_scale": 0.2,
+"total_megapixels": 12.0,
+"upload_state": "100% - Asset successfully uploaded.",
+"uploading": 0.0
+},
+"yp": {
+"active_ypaint_node": ""
+}
+}

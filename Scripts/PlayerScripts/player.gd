@@ -16,6 +16,8 @@ var crosshair_ui: Control = null
 @onready var camera: Camera3D = $Camera3D
 @onready var raycast: RayCast3D = $Camera3D/RayCast3D
 @onready var magic_particles: GPUParticles3D = $Camera3D/MagicParticles
+@onready var magic_particles2: GPUParticles3D = $Camera3D/MagicParticles2
+@onready var asa_animation_player: AnimationPlayer = $Camera3D/asa/AnimationPlayer
 
 
 func _ready() -> void:
@@ -30,6 +32,13 @@ func _ready() -> void:
 	
 	# Crosshair UI'yi bul (oyun başladıktan sonra bulunabilir)
 	call_deferred("_find_crosshair_ui")
+	
+	# AnimationPlayer'ın animasyon bitiş signal'ını bağla
+	call_deferred("_setup_asa_animation")
+	
+	# AnimationPlayer'ın animasyon bitiş signal'ını bağla
+	if asa_animation_player:
+		asa_animation_player.animation_finished.connect(_on_asa_animation_finished)
 func _update_crosshair_color() -> void:
 	if not crosshair_ui:
 		return
@@ -77,6 +86,17 @@ func _setup_music_loop(player: AudioStreamPlayer2D) -> void:
 func _on_music_finished(player: AudioStreamPlayer2D) -> void:
 	# Restart the music when it finishes
 	player.play()
+
+func _setup_asa_animation() -> void:
+	"""AnimationPlayer'ın animasyon bitiş signal'ını bağla."""
+	if asa_animation_player:
+		asa_animation_player.animation_finished.connect(_on_asa_animation_finished)
+
+func _on_asa_animation_finished(anim_name: StringName) -> void:
+	"""asa_attack animasyonu bitince RESET animasyonuna dön."""
+	if anim_name == "asa_attack":
+		if asa_animation_player and asa_animation_player.has_animation("RESET"):
+			asa_animation_player.play("RESET")
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -163,30 +183,19 @@ func _push_rigid_bodies() -> void:
 			rigid_body.apply_impulse(push_force, collision_point - rigid_body.global_position)
 
 func _cast_magic_spell() -> void:
-	"""Büyücü partikül efektiyle ateş eder."""
-	if not magic_particles:
+	"""Büyücü partikül efektiyle ateş eder - crosshair'ın olduğu yöne (ekranın ortasına)."""
+	if not magic_particles or not camera:
 		return
 	
-	# Mor renk oluştur (parlak mor)
-	var purple_color = Color(0.6, 0.2, 1.0, 0.9)  # RGB: Parlak mor
+	# asa_attack animasyonunu oynat
+	if asa_animation_player:
+		if asa_animation_player.has_animation("asa_attack"):
+			asa_animation_player.play("asa_attack")
 	
-	# Partikül process material'ını güncelle
-	var material = magic_particles.process_material as ParticleProcessMaterial
-	if material:
-		var new_material = material.duplicate() as ParticleProcessMaterial
-		if new_material:
-			new_material.color = purple_color
-			new_material.direction = Vector3(0, 0, -1)
-			magic_particles.process_material = new_material
-	
-	# Partikül efektini başlat
-	magic_particles.restart()
-	magic_particles.emitting = true
-	
-	# Kameranın baktığı yöne doğru raycast at
+	# Kameranın baktığı yöne doğru raycast at (crosshair'ın olduğu yön)
 	var space_state = get_world_3d().direct_space_state
 	var from = camera.global_position
-	var forward = -camera.global_transform.basis.z
+	var forward = -camera.global_transform.basis.z  # Kameranın baktığı yön (crosshair yönü)
 	var to = from + forward * 100.0
 	
 	var query = PhysicsRayQueryParameters3D.create(from, to)
@@ -196,15 +205,54 @@ func _cast_magic_spell() -> void:
 	
 	var result = space_state.intersect_ray(query)
 	
-	# Eğer bir şeye çarptıysa, o noktaya partikül efekti gönder
+	# Crosshair'ın olduğu yöndeki hedef noktayı belirle
+	var target_point: Vector3
 	if result:
-		var hit_point = result.get("position")
-		var hit_normal = result.get("normal")
+		target_point = result.get("position")
 		# Çarpışma noktasında ek efekt oynatılabilir
-		_handle_spell_hit(hit_point, result.get("collider"))
+		_handle_spell_hit(target_point, result.get("collider"))
 	else:
-		# Hiçbir şeye çarpmadıysa, maksimum mesafeye kadar partikül gönder
-		pass
+		# Hiçbir şeye çarpmadıysa, maksimum mesafedeki noktayı hedef al
+		target_point = to
+	
+	# Hedef noktaya doğru direction hesapla (local space'de)
+	var target_direction = camera.to_local(target_point) - camera.to_local(camera.global_position)
+	target_direction = target_direction.normalized()
+	
+	# Mor renk oluştur (parlak mor)
+	var purple_color = Color(0.6, 0.2, 1.0, 0.9)  # RGB: Parlak mor
+	
+	# MagicParticles için partikül process material'ını güncelle
+	var material = magic_particles.process_material as ParticleProcessMaterial
+	if material:
+		var new_material = material.duplicate() as ParticleProcessMaterial
+		if new_material:
+			new_material.color = purple_color
+			# Crosshair'ın olduğu yöne doğru (hedef noktaya)
+			new_material.direction = target_direction
+			magic_particles.process_material = new_material
+	
+	# Partikül efektini başlat
+	magic_particles.restart()
+	magic_particles.emitting = true
+	
+	# MagicParticles2 için de aynısını yap
+	if not magic_particles2:
+		return
+	
+	# Partikül process material'ını güncelle
+	material = magic_particles2.process_material as ParticleProcessMaterial
+	if material:
+		var new_material = material.duplicate() as ParticleProcessMaterial
+		if new_material:
+			new_material.color = purple_color
+			# Crosshair'ın olduğu yöne doğru (hedef noktaya)
+			new_material.direction = target_direction
+			magic_particles2.process_material = new_material
+	
+	# Partikül efektini başlat
+	magic_particles2.restart()
+	magic_particles2.emitting = true
 
 func _handle_spell_hit(hit_point: Vector3, collider: Object) -> void:
 	"""Büyünün bir şeye çarptığında çağrılır."""
