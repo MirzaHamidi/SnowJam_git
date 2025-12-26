@@ -119,5 +119,38 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	
+	# RigidBody3D'leri it
+	_push_rigid_bodies()
+	
 	# Raycast ile tetikleyici kontrolü
 	_update_crosshair_color()
+
+
+func _push_rigid_bodies() -> void:
+	"""Karakterin çarptığı RigidBody3D'leri iter."""
+	# Son çarpışmaları kontrol et
+	for i in get_slide_collision_count():
+		var collision = get_slide_collision(i)
+		var collider = collision.get_collider()
+		
+		# Eğer çarptığımız obje bir RigidBody3D ise
+		if collider is RigidBody3D:
+			var rigid_body = collider as RigidBody3D
+			
+			# Eğer freeze edilmişse atla (R tuşuna basılı tutuluyorsa)
+			if rigid_body.freeze:
+				continue
+			
+			# Çarpışma noktası ve normal
+			var collision_point = collision.get_position()
+			var collision_normal = collision.get_normal()
+			
+			# Karakterin hızını al (sadece yatay düzlemde)
+			var push_velocity = Vector3(velocity.x, 0, velocity.z)
+			
+			# RigidBody3D'ye kuvvet uygula
+			# Kuvvet = hız * kütle faktörü
+			var push_force = push_velocity * 10.0  # İtme kuvveti çarpanı
+			
+			# Çarpışma noktasına göre kuvvet uygula
+			rigid_body.apply_impulse(push_force, collision_point - rigid_body.global_position)
