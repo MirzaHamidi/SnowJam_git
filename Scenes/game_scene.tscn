@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://4kur8mdstp8t" path="res://Scenes/Test/cubetest.tscn" id="5_1ixah"]
 [ext_resource type="Script" uid="uid://de4junx3q6spd" path="res://Scripts/EnemySpawner.gd" id="6_rgj8m"]
 [ext_resource type="PackedScene" uid="uid://c2ko50kivid8r" path="res://Scenes/enemy.tscn" id="7_2fmhe"]
+[ext_resource type="PackedScene" path="res://Scenes/Test/player_health_bar.tscn" id="8_health_bar"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_x87qo"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -52,6 +53,8 @@ shape = SubResource("ConcavePolygonShape3D_b6fju")
 [node name="Player" parent="." instance=ExtResource("2_b6fju")]
 
 [node name="CrosshairUI" parent="." instance=ExtResource("4_crosshair")]
+
+[node name="PlayerHealthBar" parent="." instance=ExtResource("8_health_bar")]
 
 [node name="cubetest" parent="." instance=ExtResource("5_1ixah")]
 

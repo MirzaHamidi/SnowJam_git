@@ -16,6 +16,8 @@ enum State {
 @export var rotation_speed: float = 5.0  # Rotation lerp hızı
 @export var player_distance_threshold: float = 20.0  # Player'dan bu mesafeden uzaktaysa rastgele hareket
 @export var random_wander_speed: float = 2.0  # Rastgele hareket hızı
+@export var max_health: int = 20  # Maksimum can
+@export var attack_range: float = 15.0  # Attack alabileceği mesafe
 
 # Internal Variables
 var current_state: State = State.NORMAL
@@ -28,9 +30,41 @@ var is_active: bool = false  # Spawn animasyonu bitene kadar false
 var random_wander_direction: Vector3 = Vector3.ZERO
 var wander_direction_timer: float = 0.0
 var wander_direction_change_interval: float = 2.0  # Rastgele yön değiştirme süresi
+var current_health: int = 20  # Mevcut can
+var is_dead: bool = false  # Ölü mü?
+var health_bar: Control = null  # Health bar UI referansı
+var damage_timer: float = 0.0  # Player'a damage verme timer'ı
+const DAMAGE_INTERVAL: float = 3.0  # 3 saniyede bir damage
+const DAMAGE_AMOUNT: int = 50  # Her damage'de verilen hasar
+
+# Pozisyon kayıt sistemi (son 5 saniye)
+const REWIND_DURATION: float = 15.0  # 5 saniye geri al
+const REWIND_ANIMATION_DURATION: float = 0.6  # Rewind animasyonu 3 saniye sürer
+var position_history: Array[Dictionary] = []  # {time: float, position: Vector3, rotation: Vector3}
+var is_rewinding: bool = false  # Rewind yapılıyor mu?
+var rewind_tween: Tween = null  # Rewind tween'i
+var is_selected: bool = false  # Seçili enemy mi?
+var selection_timer: float = 0.0  # Seçim timer'ı (10 saniye)
+const SELECTION_DURATION: float = 10.0  # Seçim süresi (10 saniye)
+var mesh_instance: MeshInstance3D = null  # MeshInstance3D referansı
+var original_material: Material = null  # Orijinal material
 
 
 func _ready() -> void:
+	# Health'i başlat
+	current_health = max_health
+	is_dead = false
+	
+	# MeshInstance3D'yi bul ve orijinal material'ı kaydet
+	mesh_instance = get_node_or_null("MeshInstance3D")
+	if mesh_instance and mesh_instance.mesh:
+		var mesh = mesh_instance.mesh as CapsuleMesh
+		if mesh and mesh.material:
+			original_material = mesh.material
+	
+	# Health bar'ı oluştur
+	call_deferred("_setup_health_bar")
+	
 	# Player'ı bul (eğer set_player ile set edilmediyse)
 	if not player:
 		var player_node = get_tree().get_first_node_in_group("player")
@@ -63,6 +97,18 @@ func set_player(new_player: Node3D) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	# Ölüyse hiçbir şey yapma
+	if is_dead:
+		return
+	
+	# Rewind yapılıyorsa sadece gravity uygula ve hareket etme
+	if is_rewinding:
+		if not is_on_floor():
+			velocity += get_gravity() * delta
+		move_and_slide()
+		_update_health_bar_position()
+		return
+	
 	# Player yoksa tekrar bul
 	if not player:
 		var player_node = get_tree().get_first_node_in_group("player")
@@ -87,6 +133,7 @@ func _physics_process(delta: float) -> void:
 	# Enemy aktif değilse (spawn animasyonu devam ediyorsa) sadece gravity uygula
 	if not is_active:
 		move_and_slide()
+		_update_health_bar_position()
 		return
 	
 	# Enemy aktif - normal hareket
@@ -102,8 +149,20 @@ func _physics_process(delta: float) -> void:
 	# Hareketi uygula
 	move_and_slide()
 	
+	# Pozisyon kaydı (rewind için - rewind sırasında kayıt yapma)
+	_record_position()
+	
+	# Player ile collision kontrolü ve damage verme
+	_check_player_collision(delta)
+	
 	# Rotation'ı yumuşak bir şekilde hareket yönüne çevir
 	_update_rotation(delta)
+	
+	# Seçim timer'ını güncelle
+	_update_selection_visual(delta)
+	
+	# Health bar pozisyonunu güncelle
+	_update_health_bar_position()
 
 
 func _normal_movement(delta: float) -> void:
@@ -279,3 +338,356 @@ func activate() -> void:
 	
 	print("Enemy activated at position: ", global_position, " - Player at: ", player.global_position)
 	set_physics_process(true)
+
+
+func _setup_health_bar() -> void:
+	"""Health bar UI'yi oluştur ve enemy'nin üstüne yerleştir."""
+	# SubViewport ve Control oluştur
+	var subviewport = SubViewport.new()
+	subviewport.size = Vector2i(200, 30)
+	subviewport.transparent_bg = true
+	
+	var control = Control.new()
+	control.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	subviewport.add_child(control)
+	
+	# Health bar background (kırmızı)
+	var bg = ColorRect.new()
+	bg.color = Color(0.3, 0.0, 0.0, 0.8)
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	control.add_child(bg)
+	
+	# Health bar fill (yeşil)
+	var fill = ColorRect.new()
+	fill.color = Color(0.0, 1.0, 0.0, 0.9)
+	fill.set_anchors_and_offsets_preset(Control.PRESET_LEFT_WIDE)
+	fill.anchor_right = 1.0
+	fill.offset_left = 2
+	fill.offset_top = 2
+	fill.offset_right = -2
+	fill.offset_bottom = -2
+	control.add_child(fill)
+	fill.name = "HealthFill"
+	
+	# SubViewport'u Sprite3D'e ekle
+	var sprite = Sprite3D.new()
+	sprite.texture = subviewport.get_texture()
+	sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	sprite.pixel_size = 0.01
+	sprite.position = Vector3(0, 2.5, 0)  # Enemy'nin üstünde
+	sprite.name = "HealthBar"
+	add_child(sprite)
+	
+	health_bar = control
+
+
+func _update_health_bar_position() -> void:
+	"""Health bar'ın pozisyonunu ve görünürlüğünü güncelle."""
+	if not health_bar or is_dead:
+		return
+	
+	var sprite = get_node_or_null("HealthBar")
+	if not sprite:
+		return
+	
+	# Health bar'ı her zaman kameraya doğru çevir (billboard zaten yapıyor ama emin olmak için)
+	# Sprite3D billboard özelliği zaten bunu yapıyor
+
+
+func _update_health_bar() -> void:
+	"""Health bar'ın görsel durumunu güncelle."""
+	if not health_bar or is_dead:
+		# Health bar'ı gizle
+		var sprite = get_node_or_null("HealthBar")
+		if sprite:
+			sprite.visible = false
+		return
+	
+	var fill = health_bar.get_node_or_null("HealthFill")
+	if not fill:
+		return
+	
+	# Health bar'ı göster
+	var sprite = get_node_or_null("HealthBar")
+	if sprite:
+		sprite.visible = true
+	
+	# Health yüzdesini hesapla
+	var health_percent = float(current_health) / float(max_health)
+	health_percent = clamp(health_percent, 0.0, 1.0)
+	
+	# Fill genişliğini güncelle (offset_right kullanarak)
+	var bar_width = 196  # 200 - 4 (margin)
+	fill.offset_right = -bar_width + (bar_width * health_percent)
+	
+	# Renk değiştir (yeşil -> sarı -> kırmızı)
+	if health_percent > 0.5:
+		fill.color = Color(0.0, 1.0, 0.0, 0.9)  # Yeşil
+	elif health_percent > 0.25:
+		fill.color = Color(1.0, 1.0, 0.0, 0.9)  # Sarı
+	else:
+		fill.color = Color(1.0, 0.0, 0.0, 0.9)  # Kırmızı
+
+
+func take_damage(amount: int, push_direction: Vector3 = Vector3.ZERO) -> void:
+	"""Enemy'ye hasar ver ve geriye doğru push uygula."""
+	if is_dead:
+		return
+	
+	current_health -= amount
+	current_health = max(0, current_health)
+	
+	print("Enemy took ", amount, " damage. Health: ", current_health, "/", max_health)
+	
+	# Push uygula (geriye doğru)
+	if push_direction != Vector3.ZERO:
+		# Push yönünü normalize et (sadece yatay düzlemde)
+		var horizontal_push = push_direction
+		horizontal_push.y = 0
+		horizontal_push = horizontal_push.normalized()
+		
+		# Geriye doğru push kuvveti (yatay)
+		var push_force = horizontal_push * 8.0  # Push kuvveti
+		
+		# Velocity'ye ekle (mevcut velocity'ye eklenir)
+		velocity.x += push_force.x
+		velocity.z += push_force.z
+		
+		# Hafif yukarı doğru da push (daha doğal görünüm)
+		velocity.y += 2.0
+	
+	# Health bar'ı güncelle
+	_update_health_bar()
+	
+	# Health 0 olursa öl
+	if current_health <= 0:
+		_die()
+
+
+func _die() -> void:
+	"""Enemy'yi öldür - özellikleri deaktif et, size 0'a indir, destroy et."""
+	if is_dead:
+		return
+	
+	is_dead = true
+	
+	# Tüm özellikleri deaktif et
+	is_active = false
+	set_physics_process(false)
+	
+	# Collision'ı kapat
+	var collision = get_node_or_null("CollisionShape3D")
+	if collision:
+		collision.disabled = true
+	
+	# Size'ı 0'a indir (tween ile)
+	var tween = create_tween()
+	tween.tween_property(self, "scale", Vector3.ZERO, 0.3)
+	tween.tween_callback(_destroy_after_animation)
+
+
+func _destroy_after_animation() -> void:
+	"""Animasyon bitince enemy'yi destroy et."""
+	queue_free()
+
+
+func get_distance_to_player() -> float:
+	"""Player'a olan mesafeyi döndür (attack range kontrolü için)."""
+	if not player:
+		# Player'ı tekrar bul
+		var player_node = get_tree().get_first_node_in_group("player")
+		if player_node:
+			var character_body = player_node.get_node_or_null("CharacterBody3D")
+			if character_body:
+				player = character_body
+			else:
+				player = player_node
+		
+		if not player:
+			return INF
+	
+	var to_player = player.global_position - global_position
+	to_player.y = 0  # Sadece yatay mesafe
+	return to_player.length()
+
+
+func _check_player_collision(delta: float) -> void:
+	"""Player ile collision kontrolü ve 3 saniyede bir damage verme."""
+	if not player:
+		return
+	
+	# Damage timer'ı güncelle
+	damage_timer += delta
+	
+	# Collision kontrolü - player ile çarpışma var mı?
+	var collision_count = get_slide_collision_count()
+	for i in collision_count:
+		var collision = get_slide_collision(i)
+		var collider = collision.get_collider()
+		
+		# Player'a çarptı mı?
+		if collider == player or collider.get_parent() == player or collider.is_in_group("player"):
+			# 3 saniye geçti mi?
+			if damage_timer >= DAMAGE_INTERVAL:
+				# Player'a damage ver
+				if player.has_method("take_damage"):
+					player.take_damage(DAMAGE_AMOUNT)
+					print("Enemy hit player! Player took ", DAMAGE_AMOUNT, " damage.")
+					# Timer'ı sıfırla
+					damage_timer = 0.0
+				break
+
+
+func _record_position() -> void:
+	"""Enemy'nin pozisyonunu kaydet (son 5 saniye için)."""
+	if not is_active or is_rewinding or is_dead:
+		return
+	
+	var current_time = Time.get_ticks_msec() / 1000.0  # Saniye cinsinden
+	
+	# Pozisyon ve rotasyon kaydet
+	position_history.append({
+		"time": current_time,
+		"position": global_position,
+		"rotation": rotation
+	})
+	
+	# 5 saniyeden eski kayıtları sil
+	var cutoff_time = current_time - REWIND_DURATION
+	var filtered_history: Array[Dictionary] = []
+	for record in position_history:
+		if record["time"] >= cutoff_time:
+			filtered_history.append(record)
+	position_history = filtered_history
+
+
+func set_selected(selected: bool) -> void:
+	"""Enemy'yi seçili/seçili değil olarak işaretle."""
+	is_selected = selected
+	
+	if selected:
+		# Seçim timer'ını başlat (10 saniye)
+		selection_timer = SELECTION_DURATION
+		_apply_blue_color()
+	else:
+		# Seçim kaldırıldıysa timer'ı sıfırla
+		selection_timer = 0.0
+		_restore_original_color()
+	
+	if selected:
+		# Seçim timer'ını başlat (10 saniye)
+		selection_timer = SELECTION_DURATION
+		_apply_blue_color()
+	else:
+		# Seçim kaldırıldıysa timer'ı sıfırla
+		selection_timer = 0.0
+		_restore_original_color()
+
+
+func rewind() -> void:
+	"""Enemy'nin son 5 saniyesini geri al (geldiği yolu geri dön)."""
+	if is_rewinding or position_history.size() < 2:
+		print("Cannot rewind: is_rewinding=", is_rewinding, " history_size=", position_history.size())
+		return
+	
+	is_rewinding = true
+	is_active = false  # Rewind sırasında hareket etmesin
+	velocity = Vector3.ZERO  # Hızı sıfırla
+	
+	# Pozisyon geçmişini ters sırada al (en yeni -> en eski)
+	var reversed_history = position_history.duplicate()
+	reversed_history.reverse()
+	
+	# Mevcut pozisyonu başlangıç olarak ekle
+	reversed_history.insert(0, {
+		"time": Time.get_ticks_msec() / 1000.0,
+		"position": global_position,
+		"rotation": rotation
+	})
+	
+	# Tween ile pozisyonları geri oynat
+	if rewind_tween:
+		rewind_tween.kill()
+	
+	rewind_tween = create_tween()
+	rewind_tween.set_parallel(true)
+	
+	# En eski pozisyonu hedef al (5 saniye önceki)
+	var target_record = reversed_history[reversed_history.size() - 1]
+	
+	# 3 saniyede 5 saniye önceki pozisyona git (yumuşak animasyon)
+	rewind_tween.tween_property(self, "global_position", target_record["position"], REWIND_ANIMATION_DURATION)
+	rewind_tween.parallel().tween_property(self, "rotation", target_record["rotation"], REWIND_ANIMATION_DURATION)
+	
+	# Rewind bitince normal duruma dön
+	rewind_tween.tween_callback(_on_rewind_finished)
+
+
+func _on_rewind_finished() -> void:
+	"""Rewind animasyonu bitince normal duruma dön."""
+	is_rewinding = false
+	is_active = true
+	rewind_tween = null
+	
+	# Pozisyon geçmişini temizle (rewind sonrası yeni kayıtlar başlasın)
+	position_history.clear()
+	
+	# Hızı sıfırla (rewind sonrası temiz başlangıç)
+	velocity = Vector3.ZERO
+	
+	# Normal hareket durumuna dön
+	current_state = State.NORMAL
+	
+	# Dash timer'ları sıfırla (hemen takibe başlasın)
+	dash_cooldown_timer = 0.0
+	next_dash_check_time = randf_range(min_dash_interval, max_dash_interval)
+	
+	print("Enemy rewind finished! Enemy can move again.")
+
+
+func _update_selection_visual(delta: float) -> void:
+	"""Seçim görsel efektini güncelle (10 saniye mavi renk)."""
+	if selection_timer > 0.0:
+		selection_timer -= delta
+		
+		# Timer bitince orijinal renge dön
+		if selection_timer <= 0.0:
+			selection_timer = 0.0
+			_restore_original_color()
+			is_selected = false
+
+
+func _apply_blue_color() -> void:
+	"""Enemy'yi mavi renge çevir."""
+	if not mesh_instance:
+		return
+	
+	var mesh = mesh_instance.mesh as CapsuleMesh
+	if not mesh:
+		return
+	
+	# Yeni mavi material oluştur
+	var blue_material = StandardMaterial3D.new()
+	blue_material.albedo_color = Color(0.2, 0.4, 1.0, 1.0)  # Parlak mavi
+	
+	# Material'ı uygula
+	mesh.material = blue_material
+
+
+func _restore_original_color() -> void:
+	"""Enemy'yi orijinal rengine döndür."""
+	if not mesh_instance:
+		return
+	
+	var mesh = mesh_instance.mesh as CapsuleMesh
+	if not mesh:
+		return
+	
+	# Orijinal material'ı geri yükle
+	if original_material:
+		mesh.material = original_material
+	else:
+		# Orijinal material yoksa varsayılan kırmızı-pembe rengi kullan
+		var default_material = StandardMaterial3D.new()
+		default_material.albedo_color = Color(0.6284565, 0, 0.20009631, 1)
+		mesh.material = default_material

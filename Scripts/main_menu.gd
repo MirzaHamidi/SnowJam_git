@@ -2,6 +2,9 @@ extends Node2D
 
 
 func _ready() -> void:
+	# Mouse'u visible yap (main menu'de her zaman görünür olmalı)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	
 	# Connect the Play button's pressed signal to change scene
 	$Buttons/Play.pressed.connect(_on_play_pressed)
 	# Connect the Exit button's pressed signal to quit the game

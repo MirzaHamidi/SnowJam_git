@@ -19,6 +19,13 @@ func _ready() -> void:
 	# Collision layer ve mask ayarlarını kontrol et
 	collision_layer = 1
 	collision_mask = 1
+	
+	# RigidBody3D ayarlarını optimize et (daha doğal hareket için)
+	# Not: Bu ayarlar scene dosyasında da tanımlı, burada sadece kontrol ediyoruz
+	if mass == 0.0:
+		mass = 1.0  # Kütle
+	if gravity_scale == 0.0:
+		gravity_scale = 1.0  # Gravity ölçeği
 
 
 func _input(event: InputEvent) -> void:

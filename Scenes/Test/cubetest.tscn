@@ -3,6 +3,8 @@
 [ext_resource type="Script" path="res://Scripts/cubetest.gd" id="1_cubetest"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_e6m6s"]
+friction = 0.5
+bounce = 0.2
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_e6m6s"]
 
@@ -13,6 +15,8 @@
 [node name="RigidBody3D" type="RigidBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.011772752, 0)
 physics_material_override = SubResource("PhysicsMaterial_e6m6s")
+linear_damp = 0.1
+angular_damp = 0.1
 script = ExtResource("1_cubetest")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D"]

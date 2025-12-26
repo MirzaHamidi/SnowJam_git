@@ -10,8 +10,14 @@ const MAX_LOOK_DOWN = deg_to_rad(-90)
 const PROJECTILE_SPEED = 20.0
 const PROJECTILE_LIFETIME = 3.0
 
+@export var max_health: int = 100  # Maksimum can
+var current_health: int = 100  # Mevcut can
+var is_dead: bool = false  # Ölü mü?
+
 var camera_rotation_x: float = 0.0
 var crosshair_ui: Control = null
+var health_bar_ui: Control = null  # Health bar UI referansı
+var selected_enemy: Node3D = null  # Seçili enemy
 
 @onready var camera: Camera3D = $Camera3D
 @onready var raycast: RayCast3D = $Camera3D/RayCast3D
@@ -21,6 +27,13 @@ var crosshair_ui: Control = null
 
 
 func _ready() -> void:
+	# Health'i başlat
+	current_health = max_health
+	is_dead = false
+	
+	# Player'ı "player" group'una ekle
+	add_to_group("player")
+	
 	_setup_music_loop($Camera3D/GameScene_Music)
 	# Mouse'u yakala ve kilitle
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -33,6 +46,9 @@ func _ready() -> void:
 	# Crosshair UI'yi bul (oyun başladıktan sonra bulunabilir)
 	call_deferred("_find_crosshair_ui")
 	
+	# Health bar UI'yi bul
+	call_deferred("_find_health_bar_ui")
+	
 	# AnimationPlayer'ın animasyon bitiş signal'ını bağla
 	call_deferred("_setup_asa_animation")
 	
@@ -44,8 +60,9 @@ func _update_crosshair_color() -> void:
 		return
 	
 	var is_in_trigger = false
+	var is_enemy_in_range = false
 	
-	# Space state kullanarak Area3D'leri de algıla
+	# Space state kullanarak Area3D'leri ve Enemy'leri algıla
 	var space_state = get_world_3d().direct_space_state
 	var from = camera.global_position
 	var to = from + (-camera.global_transform.basis.z * 100.0)  # Kameranın baktığı yöne 100 birim
@@ -59,11 +76,25 @@ func _update_crosshair_color() -> void:
 	
 	if result:
 		var collider = result.get("collider")
+		
+		# Trigger area kontrolü
 		if collider and collider.has_method("is_trigger_area"):
 			is_in_trigger = collider.is_trigger_area()
+		
+		# Enemy kontrolü - attack range içinde mi?
+		if collider and collider.has_method("take_damage"):
+			var enemy = collider
+			# Player'dan enemy'ye olan mesafeyi hesapla
+			var to_enemy = enemy.global_position - global_position
+			to_enemy.y = 0  # Sadece yatay mesafe
+			var distance = to_enemy.length()
+			if distance <= enemy.attack_range:
+				is_enemy_in_range = true
 	
-	# Crosshair rengini güncelle
+	# Crosshair rengini güncelle (öncelik: trigger > enemy > normal)
 	if is_in_trigger:
+		crosshair_ui.set_crosshair_color(Color.YELLOW)
+	elif is_enemy_in_range:
 		crosshair_ui.set_crosshair_color(Color.YELLOW)
 	else:
 		crosshair_ui.set_crosshair_color(Color.WHITE)
@@ -73,6 +104,14 @@ func _find_crosshair_ui() -> void:
 	var game_scene = get_tree().get_first_node_in_group("game_scene")
 	if game_scene:
 		crosshair_ui = game_scene.get_node_or_null("CrosshairUI")
+
+func _find_health_bar_ui() -> void:
+	# Health bar UI'yi bul
+	var game_scene = get_tree().get_first_node_in_group("game_scene")
+	if game_scene:
+		health_bar_ui = game_scene.get_node_or_null("PlayerHealthBar")
+		if health_bar_ui:
+			_update_health_bar()
 
 func _setup_music_loop(player: AudioStreamPlayer2D) -> void:
 	if player.stream == null:
@@ -121,8 +160,22 @@ func _input(event: InputEvent) -> void:
 	# Attack input kontrolü - Sol tıklama
 	if Input.is_action_just_pressed("Attack") and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		_cast_magic_spell()
+	
+	# Sağ tık ile enemy seçme
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+			_select_enemy()
+	
+	# R tuşu ile seçili enemy'yi rewind et
+	if event is InputEventKey and event.pressed and event.keycode == KEY_R:
+		if selected_enemy and selected_enemy.has_method("rewind"):
+			selected_enemy.rewind()
 
 func _physics_process(delta: float) -> void:
+	# Ölüyse hiçbir şey yapma
+	if is_dead:
+		return
+	
 	# Add the gravity.
 	if not is_on_floor():
 		velocity += get_gravity() * delta
@@ -153,6 +206,8 @@ func _physics_process(delta: float) -> void:
 	
 	# Raycast ile tetikleyici kontrolü
 	_update_crosshair_color()
+	
+	# Enemy collision kontrolü (enemy'ler kendileri kontrol edecek)
 
 
 func _push_rigid_bodies() -> void:
@@ -176,13 +231,26 @@ func _push_rigid_bodies() -> void:
 			
 			# Karakterin hızını al (sadece yatay düzlemde)
 			var push_velocity = Vector3(velocity.x, 0, velocity.z)
+			var push_speed = push_velocity.length()
 			
-			# RigidBody3D'ye kuvvet uygula
-			# Kuvvet = hız * kütle faktörü
-			var push_force = push_velocity * 1.1  # İtme kuvveti çarpanı
+			# Eğer hız yoksa veya çok düşükse itme
+			if push_speed < 0.1:
+				continue
 			
-			# Çarpışma noktasına göre kuvvet uygula
-			rigid_body.apply_impulse(push_force, collision_point - rigid_body.global_position)
+			# İtme yönü (karakterin hareket yönü)
+			var push_direction = push_velocity.normalized()
+			
+			# Yatay itme kuvveti (sürekli ve akıcı - apply_force kullan)
+			var horizontal_force = push_direction * push_speed * 15.0
+			
+			# Up velocity (ufak havalanma efekti - Y ekseninde)
+			var up_force = Vector3(0, 3.0, 0)  # Hafif yukarı kuvvet
+			
+			# Toplam kuvvet (yatay + dikey)
+			var total_force = horizontal_force + up_force
+			
+			# Çarpışma noktasına göre sürekli kuvvet uygula (apply_force - akıcı itme)
+			rigid_body.apply_force(total_force, collision_point - rigid_body.global_position)
 
 func _cast_magic_spell() -> void:
 	"""Büyücü partikül efektiyle ateş eder - crosshair'ın olduğu yöne (ekranın ortasına)."""
@@ -257,11 +325,125 @@ func _cast_magic_spell() -> void:
 	magic_particles2.emitting = true
 
 func _handle_spell_hit(hit_point: Vector3, collider: Object) -> void:
-	"""Büyünün bir şeye çarptığında çağrılır."""
+	"""Büyünün bir şeye çarptığında çağrılır - apply_impulse kullan (anlık güçlü vuruş)."""
+	# Enemy kontrolü - attack range içinde mi ve damage ver
+	if collider and collider.has_method("take_damage"):
+		var enemy = collider
+		# Player'dan enemy'ye olan mesafeyi hesapla
+		var to_enemy = enemy.global_position - global_position
+		to_enemy.y = 0  # Sadece yatay mesafe
+		var distance = to_enemy.length()
+		if distance <= enemy.attack_range:
+			# Push yönü: Player'dan enemy'ye doğru (geriye push için)
+			var push_direction = to_enemy.normalized()
+			# Enemy'ye damage ver (5 hasar) ve push uygula
+			enemy.take_damage(5, push_direction)
+	
 	# Eğer çarptığı obje bir RigidBody3D ise, ona kuvvet uygula
 	if collider is RigidBody3D:
 		var rigid_body = collider as RigidBody3D
 		if not rigid_body.freeze:
-			var direction = (hit_point - camera.global_position).normalized()
-			var force = direction * 50.0  # Büyü kuvveti
-			rigid_body.apply_impulse(force, hit_point - rigid_body.global_position)
+			# Vuruş yönü (kameradan hedefe)
+			var direction = (hit_point - camera.global_position)
+			direction.y = 0  # Sadece yatay
+			direction = direction.normalized()
+			
+			# Yatay kuvvet
+			var horizontal_force = direction * 50.0  # Büyü kuvveti
+			
+			# Up velocity (ufak havalanma efekti - Y ekseninde)
+			var up_force = Vector3(0, 8.0, 0)  # Attack'ta daha güçlü yukarı kuvvet
+			
+			# Toplam kuvvet (yatay + dikey)
+			var total_force = horizontal_force + up_force
+			
+			# Anlık kuvvet uygula (apply_impulse - attack için)
+			rigid_body.apply_impulse(total_force, hit_point - rigid_body.global_position)
+
+
+func take_damage(amount: int) -> void:
+	"""Player'a hasar ver."""
+	if is_dead:
+		return
+	
+	current_health -= amount
+	current_health = max(0, current_health)
+	
+	print("Player took ", amount, " damage. Health: ", current_health, "/", max_health)
+	
+	# Health bar'ı güncelle
+	_update_health_bar()
+	
+	# Health 0 olursa öl
+	if current_health <= 0:
+		_die()
+
+
+func _update_health_bar() -> void:
+	"""Health bar'ın görsel durumunu güncelle."""
+	if not health_bar_ui:
+		return
+	
+	var fill = health_bar_ui.get_node_or_null("HealthFill")
+	if not fill:
+		return
+	
+	# Health yüzdesini hesapla
+	var health_percent = float(current_health) / float(max_health)
+	health_percent = clamp(health_percent, 0.0, 1.0)
+	
+	# Fill genişliğini güncelle (offset_right kullanarak)
+	var bar_width = health_bar_ui.size.x - 4  # Margin için
+	if bar_width > 0:
+		fill.offset_right = -bar_width + (bar_width * health_percent)
+	
+	# Renk değiştir (yeşil -> sarı -> kırmızı)
+	if health_percent > 0.5:
+		fill.color = Color(0.0, 1.0, 0.0, 0.9)  # Yeşil
+	elif health_percent > 0.25:
+		fill.color = Color(1.0, 1.0, 0.0, 0.9)  # Sarı
+	else:
+		fill.color = Color(1.0, 0.0, 0.0, 0.9)  # Kırmızı
+
+
+func _die() -> void:
+	"""Player'ı öldür - ana menüye dön."""
+	if is_dead:
+		return
+	
+	is_dead = true
+	
+	print("Player died! Returning to main menu...")
+	
+	# Ana menüye geç
+	get_tree().change_scene_to_file("res://Scenes/main_menu.tscn")
+
+
+func _select_enemy() -> void:
+	"""Sağ tık ile enemy seç (raycast ile)."""
+	# Önceki seçili enemy'yi temizle
+	if selected_enemy and selected_enemy.has_method("set_selected"):
+		selected_enemy.set_selected(false)
+	
+	selected_enemy = null
+	
+	# Raycast ile enemy bul
+	var space_state = get_world_3d().direct_space_state
+	var from = camera.global_position
+	var forward = -camera.global_transform.basis.z
+	var to = from + forward * 100.0
+	
+	var query = PhysicsRayQueryParameters3D.create(from, to)
+	query.collision_mask = 1
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+	
+	var result = space_state.intersect_ray(query)
+	
+	if result:
+		var collider = result.get("collider")
+		# Enemy mi kontrol et
+		if collider and collider.has_method("set_selected"):
+			selected_enemy = collider
+			selected_enemy.set_selected(true)
+			print("Enemy selected!")
