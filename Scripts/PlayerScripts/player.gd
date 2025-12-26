@@ -24,6 +24,8 @@ var selected_enemy: Node3D = null  # Seçili enemy
 @onready var magic_particles: GPUParticles3D = $Camera3D/MagicParticles
 @onready var magic_particles2: GPUParticles3D = $Camera3D/MagicParticles2
 @onready var asa_animation_player: AnimationPlayer = $Camera3D/asa/AnimationPlayer
+@onready var spell_audio: AudioStreamPlayer2D = $Camera3D/spell
+@onready var walk_audio: AudioStreamPlayer2D = $Camera3D/walk
 
 
 func _ready() -> void:
@@ -55,6 +57,11 @@ func _ready() -> void:
 	# AnimationPlayer'ın animasyon bitiş signal'ını bağla
 	if asa_animation_player:
 		asa_animation_player.animation_finished.connect(_on_asa_animation_finished)
+	
+	# Walk audio için loop ayarı (finished signal ile loop yapacağız)
+	if walk_audio:
+		# Walk audio bitince tekrar çal (finished signal ile)
+		walk_audio.finished.connect(_on_walk_audio_finished)
 func _update_crosshair_color() -> void:
 	if not crosshair_ui:
 		return
@@ -126,6 +133,14 @@ func _on_music_finished(player: AudioStreamPlayer2D) -> void:
 	# Restart the music when it finishes
 	player.play()
 
+func _on_walk_audio_finished() -> void:
+	"""Walk audio bitince, eğer hala hareket ediyorsa tekrar çal."""
+	if walk_audio:
+		var input_dir := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+		var is_moving = input_dir.length() > 0.0
+		if is_moving and is_on_floor():
+			walk_audio.play()
+
 func _setup_asa_animation() -> void:
 	"""AnimationPlayer'ın animasyon bitiş signal'ını bağla."""
 	if asa_animation_player:
@@ -191,6 +206,15 @@ func _physics_process(delta: float) -> void:
 	
 	# Dash kontrolü - Shift tuşuna basılıyken koş
 	var current_speed = DASH_SPEED if Input.is_action_pressed("Dash") else SPEED
+	
+	# Walk sesi kontrolü - WASD tuşlarına basılıyken çal
+	var is_moving = input_dir.length() > 0.0
+	if is_moving and is_on_floor():
+		if walk_audio and not walk_audio.playing:
+			walk_audio.play()
+	else:
+		if walk_audio and walk_audio.playing:
+			walk_audio.stop()
 	
 	if direction:
 		velocity.x = direction.x * current_speed
@@ -261,6 +285,12 @@ func _cast_magic_spell() -> void:
 	if asa_animation_player:
 		if asa_animation_player.has_animation("asa_attack"):
 			asa_animation_player.play("asa_attack")
+	
+	# Spell sesini çal
+	if spell_audio:
+		spell_audio.play()
+	else:
+		print("Spell audio not found! Check if node exists at Camera3D/spell")
 	
 	# Kameranın baktığı yöne doğru raycast at (crosshair'ın olduğu yön)
 	var space_state = get_world_3d().direct_space_state

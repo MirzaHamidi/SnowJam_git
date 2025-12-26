@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://s4ggt0fmweel"
+path="res://.godot/imported/stones_002.wav-18b35fab97218c81744a31a6c1b23b84.sample"
+
+[deps]
+
+source_file="res://Assets/yürüme sfx/taşlı yol/stones_002.wav"
+dest_files=["res://.godot/imported/stones_002.wav-18b35fab97218c81744a31a6c1b23b84.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

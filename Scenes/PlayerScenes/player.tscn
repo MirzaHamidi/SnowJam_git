@@ -1,9 +1,11 @@
-[gd_scene load_steps=17 format=3 uid="uid://dilmi138y4khk"]
+[gd_scene load_steps=19 format=3 uid="uid://dilmi138y4khk"]
 
 [ext_resource type="Script" uid="uid://c3xfo4tp0gyqo" path="res://Scripts/PlayerScripts/player.gd" id="1_onrkg"]
 [ext_resource type="AudioStream" uid="uid://bcboy75a2ro7a" path="res://Assets/müzikler/müzik 2.wav" id="2_2oab2"]
 [ext_resource type="PackedScene" uid="uid://dgpoc40wpb7fj" path="res://Scenes/Test/crosshair.tscn" id="3_2oab2"]
 [ext_resource type="PackedScene" uid="uid://bl4b1ypu2o4m3" path="res://Scenes/asa.tscn" id="4_pu5dk"]
+[ext_resource type="AudioStream" uid="uid://c7fr4rhgrvw2l" path="res://Assets/müzikler/wind-magic-5.wav" id="5_sn0nf"]
+[ext_resource type="AudioStream" uid="uid://by8dwe3wce0yn" path="res://Assets/yürüme sfx/çimenli yol/grass_001.wav" id="6_c45ss"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_4flbx"]
 
@@ -12,6 +14,7 @@ lifetime_randomness = 1.0
 inherit_velocity_ratio = 0.407
 direction = Vector3(0, 0, -1)
 spread = 180.0
+initial_velocity_min = 20.0
 initial_velocity_max = 782.35
 gravity = Vector3(0, 47.43, 0)
 scale_min = 0.14999999
@@ -58,6 +61,33 @@ turbulence_noise_speed_random = 2.01
 [sub_resource type="BoxMesh" id="BoxMesh_c45ss"]
 uv2_padding = 19.95
 
+[sub_resource type="Animation" id="Animation_sn0nf"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0.27, 0.18, -0.66)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0.5497787, -2.4783676, -3.1415927)]
+}
+
 [sub_resource type="Animation" id="Animation_pu5dk"]
 resource_name = "asa_attack"
 length = 0.894
@@ -84,33 +114,6 @@ tracks/1/keys = {
 "transitions": PackedFloat32Array(1, 1, 1, 1),
 "update": 0,
 "values": [Vector3(0.5497787, -2.4783676, -3.1415927), Vector3(1.1780972, -2.8710666, -3.1817353), Vector3(1.0995574, -3.5220745, -3.387684), Vector3(0.5497787, -2.4783676, -3.1415927)]
-}
-
-[sub_resource type="Animation" id="Animation_sn0nf"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:position")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector3(0.27, 0.18, -0.66)]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath(".:rotation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector3(0.5497787, -2.4783676, -3.1415927)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_c45ss"]
@@ -175,3 +178,13 @@ transform = Transform3D(0.2482234, 0.101329915, -0.16535537, 2.3480153e-08, -0.2
 libraries = {
 &"": SubResource("AnimationLibrary_c45ss")
 }
+
+[node name="SpellAudio" type="AudioStreamPlayer3D" parent="CharacterBody3D/Camera3D"]
+
+[node name="spell" type="AudioStreamPlayer2D" parent="CharacterBody3D/Camera3D"]
+stream = ExtResource("5_sn0nf")
+autoplay = true
+
+[node name="walk" type="AudioStreamPlayer2D" parent="CharacterBody3D/Camera3D"]
+stream = ExtResource("6_c45ss")
+autoplay = true

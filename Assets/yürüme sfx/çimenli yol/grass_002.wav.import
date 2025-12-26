@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://btjg8rfmmmteo"
+path="res://.godot/imported/grass_002.wav-12de0922be8362777443bbe1c86f284d.sample"
+
+[deps]
+
+source_file="res://Assets/yürüme sfx/çimenli yol/grass_002.wav"
+dest_files=["res://.godot/imported/grass_002.wav-12de0922be8362777443bbe1c86f284d.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2
