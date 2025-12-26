@@ -1,20 +1,10 @@
-[gd_scene load_steps=8 format=3 uid="uid://dilmi138y4khk"]
+[gd_scene load_steps=7 format=3 uid="uid://dilmi138y4khk"]
 
 [ext_resource type="Script" uid="uid://c3xfo4tp0gyqo" path="res://Scripts/PlayerScripts/player.gd" id="1_onrkg"]
-[ext_resource type="AudioStream" uid="uid://bmnigt1qcoemf" path="res://Assets/müzikler/müzik 1.wav" id="2_2oab2"]
+[ext_resource type="AudioStream" uid="uid://bcboy75a2ro7a" path="res://Assets/müzikler/müzik 2.wav" id="2_2oab2"]
 [ext_resource type="PackedScene" uid="uid://dgpoc40wpb7fj" path="res://Scenes/Test/crosshair.tscn" id="3_2oab2"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_4flbx"]
-
-[sub_resource type="QuadMesh" id="QuadMesh_magic"]
-size = Vector2(0.1, 0.1)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_particle"]
-shading_mode = 1
-albedo_color = Color(0.6, 0.2, 1, 0.9)
-flags_unshaded = true
-flags_transparent = true
-flags_use_point_size = true
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_magic"]
 direction = Vector3(0, 0, -1)
@@ -24,7 +14,10 @@ initial_velocity_max = 25.0
 gravity = Vector3(0, -0.3, 0)
 scale_min = 0.15
 scale_max = 0.25
-color = Color(0.6, 0.2, 1.0, 0.9)
+color = Color(0.6, 0.2, 1, 0.9)
+
+[sub_resource type="QuadMesh" id="QuadMesh_magic"]
+size = Vector2(0.1, 0.1)
 
 [node name="Player" type="Node3D"]
 
@@ -55,4 +48,3 @@ lifetime = 0.8
 one_shot = true
 process_material = SubResource("ParticleProcessMaterial_magic")
 draw_pass_1 = SubResource("QuadMesh_magic")
-draw_pass_1_material = SubResource("StandardMaterial3D_particle")
