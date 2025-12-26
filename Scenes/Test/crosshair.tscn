@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=3 uid="uid://dgpoc40wpb7fj"]
+
+[ext_resource type="Script" uid="uid://b8x7k2nan4p5q" path="res://Scripts/PlayerScripts/crosshair_ui.gd" id="1_crosshair"]
+
+[node name="CrosshairUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_crosshair")
+
+[node name="CrosshairH" type="Line2D" parent="."]
+points = PackedVector2Array(-20, 0, 20, 0)
+width = 2.0
+
+[node name="CrosshairV" type="Line2D" parent="."]
+points = PackedVector2Array(0, -20, 0, 20)
+width = 2.0
