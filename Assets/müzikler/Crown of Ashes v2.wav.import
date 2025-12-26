@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://dg2h4wv3fjln1"
+path="res://.godot/imported/Crown of Ashes v2.wav-066105f6faa69ccfaf0742225bd19ccf.sample"
+
+[deps]
+
+source_file="res://Assets/müzikler/Crown of Ashes v2.wav"
+dest_files=["res://.godot/imported/Crown of Ashes v2.wav-066105f6faa69ccfaf0742225bd19ccf.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://8ekcw1mwby7t"
+path="res://.godot/imported/Whispers of the Old Kingdom v2.wav-1b9e639dede4023009d3433ec7d718b2.sample"
+
+[deps]
+
+source_file="res://Assets/müzikler/Whispers of the Old Kingdom v2.wav"
+dest_files=["res://.godot/imported/Whispers of the Old Kingdom v2.wav-1b9e639dede4023009d3433ec7d718b2.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

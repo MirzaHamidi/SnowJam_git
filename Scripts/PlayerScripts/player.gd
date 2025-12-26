@@ -7,12 +7,15 @@ const JUMP_VELOCITY = 4.5
 const MOUSE_SENSITIVITY = 0.003
 const MAX_LOOK_UP = deg_to_rad(90)
 const MAX_LOOK_DOWN = deg_to_rad(-90)
+const PROJECTILE_SPEED = 20.0
+const PROJECTILE_LIFETIME = 3.0
 
 var camera_rotation_x: float = 0.0
 var crosshair_ui: Control = null
 
 @onready var camera: Camera3D = $Camera3D
 @onready var raycast: RayCast3D = $Camera3D/RayCast3D
+@onready var magic_particles: GPUParticles3D = $Camera3D/MagicParticles
 
 
 func _ready() -> void:
@@ -92,6 +95,10 @@ func _input(event: InputEvent) -> void:
 				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			else:
 				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	
+	# Attack input kontrolü - Sol tıklama
+	if Input.is_action_just_pressed("Attack") and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		_cast_magic_spell()
 
 func _physics_process(delta: float) -> void:
 	# Add the gravity.
@@ -154,3 +161,57 @@ func _push_rigid_bodies() -> void:
 			
 			# Çarpışma noktasına göre kuvvet uygula
 			rigid_body.apply_impulse(push_force, collision_point - rigid_body.global_position)
+
+func _cast_magic_spell() -> void:
+	"""Büyücü partikül efektiyle ateş eder."""
+	if not magic_particles:
+		return
+	
+	# Mor renk oluştur (parlak mor)
+	var purple_color = Color(0.6, 0.2, 1.0, 0.9)  # RGB: Parlak mor
+	
+	# Partikül process material'ını güncelle
+	var material = magic_particles.process_material as ParticleProcessMaterial
+	if material:
+		var new_material = material.duplicate() as ParticleProcessMaterial
+		if new_material:
+			new_material.color = purple_color
+			new_material.direction = Vector3(0, 0, -1)
+			magic_particles.process_material = new_material
+	
+	# Partikül efektini başlat
+	magic_particles.restart()
+	magic_particles.emitting = true
+	
+	# Kameranın baktığı yöne doğru raycast at
+	var space_state = get_world_3d().direct_space_state
+	var from = camera.global_position
+	var forward = -camera.global_transform.basis.z
+	var to = from + forward * 100.0
+	
+	var query = PhysicsRayQueryParameters3D.create(from, to)
+	query.collision_mask = 1
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+	
+	var result = space_state.intersect_ray(query)
+	
+	# Eğer bir şeye çarptıysa, o noktaya partikül efekti gönder
+	if result:
+		var hit_point = result.get("position")
+		var hit_normal = result.get("normal")
+		# Çarpışma noktasında ek efekt oynatılabilir
+		_handle_spell_hit(hit_point, result.get("collider"))
+	else:
+		# Hiçbir şeye çarpmadıysa, maksimum mesafeye kadar partikül gönder
+		pass
+
+func _handle_spell_hit(hit_point: Vector3, collider: Object) -> void:
+	"""Büyünün bir şeye çarptığında çağrılır."""
+	# Eğer çarptığı obje bir RigidBody3D ise, ona kuvvet uygula
+	if collider is RigidBody3D:
+		var rigid_body = collider as RigidBody3D
+		if not rigid_body.freeze:
+			var direction = (hit_point - camera.global_position).normalized()
+			var force = direction * 50.0  # Büyü kuvveti
+			rigid_body.apply_impulse(force, hit_point - rigid_body.global_position)
