@@ -90,7 +90,9 @@ func _on_music_finished(player: AudioStreamPlayer2D) -> void:
 func _setup_asa_animation() -> void:
 	"""AnimationPlayer'ın animasyon bitiş signal'ını bağla."""
 	if asa_animation_player:
-		asa_animation_player.animation_finished.connect(_on_asa_animation_finished)
+		# Signal zaten bağlı değilse bağla
+		if not asa_animation_player.animation_finished.is_connected(_on_asa_animation_finished):
+			asa_animation_player.animation_finished.connect(_on_asa_animation_finished)
 
 func _on_asa_animation_finished(anim_name: StringName) -> void:
 	"""asa_attack animasyonu bitince RESET animasyonuna dön."""
@@ -177,7 +179,7 @@ func _push_rigid_bodies() -> void:
 			
 			# RigidBody3D'ye kuvvet uygula
 			# Kuvvet = hız * kütle faktörü
-			var push_force = push_velocity * 10.0  # İtme kuvveti çarpanı
+			var push_force = push_velocity * 1.1  # İtme kuvveti çarpanı
 			
 			# Çarpışma noktasına göre kuvvet uygula
 			rigid_body.apply_impulse(push_force, collision_point - rigid_body.global_position)

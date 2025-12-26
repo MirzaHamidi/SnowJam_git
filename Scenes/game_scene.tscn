@@ -55,6 +55,9 @@ shape = SubResource("ConcavePolygonShape3D_b6fju")
 
 [node name="cubetest" parent="." instance=ExtResource("5_1ixah")]
 
-[node name="enemyspawner" type="Node3D" parent="."]
+[node name="enemyspawner" type="Node3D" parent="." node_paths=PackedStringArray("terrain", "player")]
 script = ExtResource("6_rgj8m")
 enemy_scene = ExtResource("7_2fmhe")
+terrain = NodePath("../MeshInstance3D")
+player = NodePath("../Player")
+spawn_count = 1

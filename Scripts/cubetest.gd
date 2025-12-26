@@ -103,4 +103,3 @@ func _physics_process(_delta: float) -> void:
 			# Collision ayarlarını koru
 			collision_layer = 1
 			collision_mask = 1
-

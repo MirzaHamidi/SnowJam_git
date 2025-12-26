@@ -11,8 +11,6 @@
 [node name="cubetest" type="Node3D"]
 
 [node name="RigidBody3D" type="RigidBody3D" parent="."]
-collision_layer = 1
-collision_mask = 1
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.011772752, 0)
 physics_material_override = SubResource("PhysicsMaterial_e6m6s")
 script = ExtResource("1_cubetest")
