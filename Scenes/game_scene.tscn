@@ -2,9 +2,9 @@
 
 [ext_resource type="Script" uid="uid://c7s3e101nen7j" path="res://Scripts/game_scene.gd" id="1_aloqd"]
 [ext_resource type="PackedScene" uid="uid://dilmi138y4khk" path="res://Scenes/PlayerScenes/player.tscn" id="2_b6fju"]
-[ext_resource type="PackedScene" uid="uid://4kur8mdstp8t" path="res://Scenes/Test/cubetest.tscn" id="3_6h5vk"]
-[ext_resource type="Script" path="res://Scripts/cubetest.gd" id="4_1ixah"]
+[ext_resource type="Texture2D" uid="uid://be82aw7hsys1t" path="res://a12a8af2-abe7-42e7-8bbf-784c39d92d6e.jpg" id="2_fiftr"]
 [ext_resource type="PackedScene" uid="uid://dgpoc40wpb7fj" path="res://Scenes/Test/crosshair.tscn" id="4_crosshair"]
+[ext_resource type="PackedScene" uid="uid://4kur8mdstp8t" path="res://Scenes/Test/cubetest.tscn" id="5_1ixah"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_x87qo"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -19,11 +19,10 @@ sky = SubResource("Sky_b6fju")
 tonemap_mode = 2
 glow_enabled = true
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fiftr"]
-albedo_color = Color(0.5411765, 1, 0.3372549, 1)
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1ixah"]
+albedo_texture = ExtResource("2_fiftr")
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_x87qo"]
-material = SubResource("StandardMaterial3D_fiftr")
 size = Vector2(100, 100)
 
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_b6fju"]
@@ -40,6 +39,7 @@ transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545
 shadow_enabled = true
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+material_override = SubResource("StandardMaterial3D_1ixah")
 mesh = SubResource("PlaneMesh_x87qo")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="MeshInstance3D"]
@@ -49,8 +49,6 @@ shape = SubResource("ConcavePolygonShape3D_b6fju")
 
 [node name="Player" parent="." instance=ExtResource("2_b6fju")]
 
-[node name="cubetest" parent="." instance=ExtResource("3_6h5vk")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6089034, 0, 0)
-script = ExtResource("4_1ixah")
-
 [node name="CrosshairUI" parent="." instance=ExtResource("4_crosshair")]
+
+[node name="cubetest" parent="." instance=ExtResource("5_1ixah")]
