@@ -123,7 +123,7 @@ _data = {
 &"asa_attack": SubResource("Animation_pu5dk")
 }
 
-[node name="Player" type="Node3D"]
+[node name="Player" type="Node3D" groups=["player"]]
 
 [node name="CharacterBody3D" type="CharacterBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)

@@ -89,11 +89,88 @@ func _ready() -> void:
 	# İlk rastgele yön seç
 	random_wander_direction = Vector3(cos(randf() * TAU), 0, sin(randf() * TAU))
 	wander_direction_timer = 0.0
+	
+	# mixamo_com_001 animasyonunu oynat
+	_play_mixamo_animation()
 
 
 func set_player(new_player: Node3D) -> void:
 	"""Player referansını dışarıdan set et (spawner'dan çağrılabilir)."""
 	player = new_player
+
+
+func _play_mixamo_animation() -> void:
+	"""mixamo_com_001 animasyonunu loop modunda oynat."""
+	# Blend dosyası instance'ını bul
+	var blend_node = get_node_or_null("Enemy_05(DanceAnim)_blend1")
+	if not blend_node:
+		print("WARNING: Enemy - Could not find blend node!")
+		return
+	
+	# AnimationPlayer'ı bul (blend node'un altında veya içinde olabilir)
+	var animation_player = blend_node.get_node_or_null("AnimationPlayer")
+	if not animation_player:
+		# Belki doğrudan blend node'un kendisi AnimationPlayer'dır
+		if blend_node is AnimationPlayer:
+			animation_player = blend_node
+		else:
+			# Tüm alt node'larda ara
+			animation_player = _find_animation_player_recursive(blend_node)
+	
+	if not animation_player:
+		print("WARNING: Enemy - Could not find AnimationPlayer in blend node!")
+		return
+	
+	# mixamo_com_001 animasyonunu loop modunda oynat
+	if animation_player.has_animation("mixamo_com_001"):
+		# Animasyonun loop modunu ayarla
+		var anim = animation_player.get_animation("mixamo_com_001")
+		if anim:
+			anim.loop_mode = Animation.LOOP_LINEAR
+		
+		# Animasyon bitince tekrar başlatmak için signal bağla
+		if not animation_player.animation_finished.is_connected(_on_mixamo_animation_finished):
+			animation_player.animation_finished.connect(_on_mixamo_animation_finished)
+		
+		# Animasyonu oynat
+		animation_player.play("mixamo_com_001")
+		print("Enemy - Playing mixamo_com_001 animation in loop mode")
+	else:
+		print("WARNING: Enemy - Animation 'mixamo_com_001' not found! Available animations: ", animation_player.get_animation_list())
+
+
+func _on_mixamo_animation_finished(anim_name: String) -> void:
+	"""mixamo_com_001 animasyonu bitince tekrar başlat."""
+	if anim_name == "mixamo_com_001":
+		# Blend dosyası instance'ını bul
+		var blend_node = get_node_or_null("Enemy_05(DanceAnim)_blend1")
+		if not blend_node:
+			return
+		
+		# AnimationPlayer'ı bul
+		var animation_player = blend_node.get_node_or_null("AnimationPlayer")
+		if not animation_player:
+			if blend_node is AnimationPlayer:
+				animation_player = blend_node
+			else:
+				animation_player = _find_animation_player_recursive(blend_node)
+		
+		if animation_player and animation_player.has_animation("mixamo_com_001"):
+			# Animasyonu tekrar oynat
+			animation_player.play("mixamo_com_001")
+
+
+func _find_animation_player_recursive(node: Node) -> AnimationPlayer:
+	"""Recursive olarak AnimationPlayer'ı bul."""
+	if node is AnimationPlayer:
+		return node as AnimationPlayer
+	
+	for child in node.get_children():
+		var result = _find_animation_player_recursive(child)
+		if result:
+			return result
+	
+	return null
 
 
 func _physics_process(delta: float) -> void:

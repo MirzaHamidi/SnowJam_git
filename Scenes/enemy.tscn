@@ -1,12 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://c2ko50kivid8r"]
+[gd_scene load_steps=4 format=3 uid="uid://c2ko50kivid8r"]
 
-[ext_resource type="Script" path="res://Scripts/EnemyFollow.gd" id="1_enemy"]
+[ext_resource type="Script" uid="uid://y8gq8vyavxv1" path="res://Scripts/Enemy.gd" id="1_enemy"]
 [ext_resource type="PackedScene" uid="uid://mo6wihkr2pbx" path="res://Assets/Enemy/Silver Armor/enemy_05(dance_anim)_blend_1.tscn" id="2_1f0kj"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_enemy"]
-
-[sub_resource type="SphereShape3D" id="SphereShape3D_attack"]
-radius = 3.0
 
 [node name="Enemy" type="CharacterBody3D"]
 script = ExtResource("1_enemy")
@@ -15,14 +12,4 @@ script = ExtResource("1_enemy")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("CapsuleShape3D_enemy")
 
-[node name="NavAgent" type="NavigationAgent3D" parent="."]
-
-[node name="Visual" type="Node3D" parent="."]
-[node name="Enemy_05(DanceAnim)_blend1" parent="Visual" instance=ExtResource("2_1f0kj")]
-
-[node name="AttackRange" type="Area3D" parent="."]
-monitorable = false
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="AttackRange"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-shape = SubResource("SphereShape3D_attack")
+[node name="Enemy_05(DanceAnim)_blend1" parent="." instance=ExtResource("2_1f0kj")]

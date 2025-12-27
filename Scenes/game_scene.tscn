@@ -5,7 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://be82aw7hsys1t" path="res://a12a8af2-abe7-42e7-8bbf-784c39d92d6e.jpg" id="2_fiftr"]
 [ext_resource type="PackedScene" uid="uid://dgpoc40wpb7fj" path="res://Scenes/Test/crosshair.tscn" id="4_crosshair"]
 [ext_resource type="PackedScene" uid="uid://4kur8mdstp8t" path="res://Scenes/Test/cubetest.tscn" id="5_1ixah"]
-[ext_resource type="Script" path="res://Scripts/EnemySpawner.gd" id="6_rgj8m"]
+[ext_resource type="Script" uid="uid://de4junx3q6spd" path="res://Scripts/EnemySpawner.gd" id="6_rgj8m"]
 [ext_resource type="PackedScene" uid="uid://c2ko50kivid8r" path="res://Scenes/enemy.tscn" id="7_2fmhe"]
 [ext_resource type="PackedScene" path="res://Scenes/Test/player_health_bar.tscn" id="8_health_bar"]
 [ext_resource type="PackedScene" uid="uid://cvdxneu2evcch" path="res://Scenes/door_test.tscn" id="9_ikfsv"]
@@ -109,7 +109,7 @@ script = ExtResource("6_rgj8m")
 enemy_scene = ExtResource("7_2fmhe")
 terrain = NodePath("../MeshInstance3D")
 player = NodePath("../Player")
-spawn_count = 1
+spawn_count = 4
 
 [node name="Door_test" parent="." instance=ExtResource("9_ikfsv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.7092717, 0.9267837, -0.035502434)

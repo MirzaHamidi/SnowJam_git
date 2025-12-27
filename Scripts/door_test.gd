@@ -1,7 +1,7 @@
 extends Node3D
 
 var player_in_range: bool = false
-var player: CharacterBody3D = null
+var player: Node3D = null
 var press_e_label: Label = null
 
 func _ready() -> void:
@@ -62,4 +62,3 @@ func _on_area_3d_body_exited(body: Node3D) -> void:
 		# Press E label'ını gizle
 		if press_e_label:
 			press_e_label.visible = false
-
