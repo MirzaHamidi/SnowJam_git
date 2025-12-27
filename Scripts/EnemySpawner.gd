@@ -1,7 +1,9 @@
 extends Node3D
 
+## Enemy Spawner - Array tabanlı enemy spawn sistemi (Enemy, EnemyShooter, vb.)
+
 # Export Variables
-@export var enemy_scene: PackedScene = null
+@export var enemy_scenes: Array[PackedScene] = []  # Enemy sahneleri array'i
 @export var terrain: Node3D = null  # Terrain node'u (assignable)
 @export var player: Node3D = null  # Player node'u (assignable)
 @export var spawn_count: int = 10
@@ -10,6 +12,9 @@ extends Node3D
 @export var ray_height: float = 100.0  # Y'den yukarıdan ray atma yüksekliği
 @export var max_tries: int = 10  # Ground bulamazsa kaç kez denenecek
 
+# Backward compatibility (eski enemy_scene kullanılıyorsa)
+@export var enemy_scene: PackedScene = null  # DEPRECATED: enemy_scenes array kullan
+
 # Internal Variables
 var spawn_timer: float = 0.0
 var spawned_count: int = 0
@@ -17,9 +22,14 @@ var is_spawning: bool = false
 
 
 func _ready() -> void:
-	# Enemy scene kontrolü
-	if not enemy_scene:
-		print("WARNING: EnemySpawner - enemy_scene is not assigned!")
+	# Backward compatibility: enemy_scene varsa array'e ekle
+	if enemy_scene and enemy_scenes.is_empty():
+		enemy_scenes.append(enemy_scene)
+		print("EnemySpawner: Using deprecated enemy_scene, added to enemy_scenes array.")
+	
+	# Enemy scenes array kontrolü
+	if enemy_scenes.is_empty():
+		print("WARNING: EnemySpawner - enemy_scenes array is empty! No enemies will be spawned.")
 		set_process(false)
 		return
 	
@@ -75,7 +85,13 @@ func _start_spawning() -> void:
 
 func _spawn_enemy() -> void:
 	"""Terrain üzerinde rastgele bir noktada enemy spawn et."""
-	if not enemy_scene:
+	if enemy_scenes.is_empty():
+		return
+	
+	# Rastgele enemy scene seç
+	var selected_scene = enemy_scenes[randi() % enemy_scenes.size()]
+	if not selected_scene:
+		print("WARNING: EnemySpawner - Selected enemy scene is null!")
 		return
 	
 	# Ground pozisyonunu bul
@@ -86,7 +102,7 @@ func _spawn_enemy() -> void:
 		return
 	
 	# Enemy instance'ı oluştur
-	var enemy_instance = enemy_scene.instantiate()
+	var enemy_instance = selected_scene.instantiate()
 	if not enemy_instance:
 		print("ERROR: EnemySpawner - Failed to instantiate enemy scene!")
 		return

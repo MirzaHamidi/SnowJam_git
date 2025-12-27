@@ -145,6 +145,11 @@ func _on_block_area_entered(body: Node) -> void:
 	if not is_held or not block_enabled or blocks_left <= 0:
 		return
 	
+	# Projectile kontrolü (Area3D olarak gelebilir)
+	if body is Area3D and body.is_in_group("projectile"):
+		_hit_by_projectile(body)
+		return
+	
 	_check_block(body)
 
 
@@ -153,8 +158,15 @@ func _on_block_area_area_entered(area: Area3D) -> void:
 	if not is_held or not block_enabled or blocks_left <= 0:
 		return
 	
+	# Enemy attack kontrolü
 	if area.is_in_group("enemy_attack"):
 		_check_block_area(area)
+		return
+	
+	# Projectile kontrolü
+	if area.is_in_group("projectile"):
+		_hit_by_projectile(area)
+		return
 
 
 func _check_block(target: Node) -> void:
@@ -232,6 +244,19 @@ func _cancel_attack(attack_source: Node) -> void:
 	# Bu kısım enemy attack sistemine göre özelleştirilebilir
 
 
+func _hit_by_projectile(projectile: Area3D) -> void:
+	"""Projectile tarafından vuruldu."""
+	if not is_held:
+		return  # Sadece eldeyken block yap
+	
+	# Projectile'i yok et (projectile kendi içinde yok edecek ama emin olmak için)
+	if is_instance_valid(projectile):
+		projectile.queue_free()
+	
+	# Block tüket
+	consume_block()
+
+
 func _destroy_shield() -> void:
 	"""Shield'i yok et (1-hit sonrası)."""
 	print("ShieldItem: Shield destroyed after blocking attack!")
@@ -254,3 +279,22 @@ func get_blocks_left() -> int:
 func reset_blocks() -> void:
 	"""Block sayısını sıfırla (opsiyonel - power-up için)."""
 	blocks_left = 1
+
+
+# ============================================
+# BLOCK CONSUMPTION
+# ============================================
+func consume_block() -> void:
+	"""Block tüket (projectile veya başka bir şey tarafından çağrılır)."""
+	if blocks_left <= 0:
+		return
+	
+	blocks_left -= 1
+	print("ShieldItem: Block consumed! (", blocks_left, " blocks left)")
+	
+	# Block signal emit et
+	blocked.emit(global_position)
+	
+	# Blocks left 0 ise shield'i yok et
+	if blocks_left <= 0:
+		_destroy_shield()

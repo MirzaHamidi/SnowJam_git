@@ -1,0 +1,54 @@
+[gd_scene load_steps=7 format=3 uid="uid://cdmaxe3ysu5yd"]
+
+[ext_resource type="Script" uid="uid://chq3vh5kxiey6" path="res://Scripts/EnemyShooter.gd" id="1_enemy_shooter"]
+[ext_resource type="PackedScene" uid="uid://mo6wihkr2pbx" path="res://Assets/Enemy/Silver Armor/enemy_05(dance_anim)_blend_1.tscn" id="2_1f0kj"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_enemy"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3l2bp"]
+albedo_color = Color(1, 1, 0.32941177, 1)
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_muzzle"]
+direction = Vector3(0, 0, -1)
+spread = 5.69
+initial_velocity_min = 5.0
+initial_velocity_max = 386.47
+scale_min = 0.1
+scale_max = 0.3
+color = Color(1, 0.5, 0, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_muzzle"]
+size = Vector3(2.175, 1.985, 2.25)
+
+[node name="EnemyShooter" type="CharacterBody3D"]
+script = ExtResource("1_enemy_shooter")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_enemy")
+
+[node name="NavAgent" type="NavigationAgent3D" parent="."]
+
+[node name="Visual" type="Node3D" parent="."]
+
+[node name="Enemy_05(DanceAnim)_blend1" parent="Visual" instance=ExtResource("2_1f0kj")]
+
+[node name="Muzzle" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0.8)
+
+[node name="MuzzleFlash" type="GPUParticles3D" parent="Muzzle"]
+transform = Transform3D(0.010524274, 0, -0.9999446, 0, 1, 0, 0.9999446, 0, 0.010524274, -0.3371849, 0.37814665, -0.66901445)
+material_override = SubResource("StandardMaterial3D_3l2bp")
+emitting = false
+amount = 30
+lifetime = 0.28
+speed_scale = 0.84
+explosiveness = 1.0
+randomness = 1.0
+visibility_aabb = AABB(-1, -1, -1, 2, 2, 2)
+process_material = SubResource("ParticleProcessMaterial_muzzle")
+draw_pass_1 = SubResource("BoxMesh_muzzle")
+
+[node name="LineOfSight" type="RayCast3D" parent="."]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 1.9361151, 0)
+target_position = Vector3(0, 0, 50)

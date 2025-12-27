@@ -97,7 +97,17 @@ func _update_crosshair_color() -> void:
 			var to_enemy = enemy.global_position - global_position
 			to_enemy.y = 0  # Sadece yatay mesafe
 			var distance = to_enemy.length()
-			if distance <= enemy.attack_range:
+			
+			# Attack range kontrolü (duck typing - farklı enemy tipleri için)
+			var attack_range: float = 0.0
+			if "attack_range" in enemy:
+				attack_range = enemy.attack_range
+			elif "max_range" in enemy:
+				attack_range = enemy.max_range
+			else:
+				attack_range = 5.0  # Varsayılan değer
+			
+			if attack_range > 0.0 and distance <= attack_range:
 				is_enemy_in_range = true
 	
 	# Crosshair rengini güncelle (öncelik: trigger > enemy > normal)
@@ -394,7 +404,17 @@ func _handle_spell_hit(hit_point: Vector3, collider: Object) -> void:
 		var to_enemy = enemy.global_position - global_position
 		to_enemy.y = 0  # Sadece yatay mesafe
 		var distance = to_enemy.length()
-		if distance <= enemy.attack_range:
+		
+		# Attack range kontrolü (duck typing - farklı enemy tipleri için)
+		var attack_range: float = 0.0
+		if "attack_range" in enemy:
+			attack_range = enemy.attack_range
+		elif "max_range" in enemy:
+			attack_range = enemy.max_range
+		else:
+			attack_range = 5.0  # Varsayılan değer
+		
+		if attack_range > 0.0 and distance <= attack_range:
 			# Push yönü: Player'dan enemy'ye doğru (geriye push için)
 			var push_direction = to_enemy.normalized()
 			# Enemy'ye damage ver (5 hasar) ve push uygula
