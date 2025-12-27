@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3 uid="uid://blvjjibqehitm"]
+
+[ext_resource type="Script" uid="uid://c4msxr8vmdiwy" path="res://Scripts/Mouse.gd" id="1_mouse"]
+[ext_resource type="PackedScene" uid="uid://c2rtyp2fewga4" path="res://Assets/fare.blend" id="2_fare"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_mouse_collision"]
+radius = 0.25
+height = 0.5
+
+[node name="Mouse" type="CharacterBody3D"]
+script = ExtResource("1_mouse")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.27600217, 0)
+shape = SubResource("CapsuleShape3D_mouse_collision")
+
+[node name="FareScene" parent="." instance=ExtResource("2_fare")]
+transform = Transform3D(0.101927504, 0, 0, 0, 0.12555434, 0, 0, 0, 0.13649704, -0.05279874, 0.13418736, 0)

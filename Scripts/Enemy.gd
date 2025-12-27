@@ -465,7 +465,7 @@ func take_damage(amount: int, push_direction: Vector3 = Vector3.ZERO) -> void:
 
 
 func _die() -> void:
-	"""Enemy'yi öldür - özellikleri deaktif et, size 0'a indir, destroy et."""
+	"""Enemy'yi öldür - özellikleri deaktif et, Mouse spawn et, destroy et."""
 	if is_dead:
 		return
 	
@@ -479,6 +479,51 @@ func _die() -> void:
 	var collision = get_node_or_null("CollisionShape3D")
 	if collision:
 		collision.disabled = true
+	
+	# Mouse sahnesini yükle ve rastgele sayıda spawn et
+	var mouse_scene_path = "res://Scenes/Mouse.tscn"
+	var mouse_scene = load(mouse_scene_path)
+	
+	if not mouse_scene:
+		print("WARNING: Enemy - Could not load Mouse scene from: ", mouse_scene_path)
+		return
+	
+	var current_scene = get_tree().current_scene
+	if not current_scene:
+		print("WARNING: Enemy - No current scene found for Mouse spawn!")
+		return
+	
+	# Rastgele mouse sayısı (1-5 arası)
+	var mouse_count = randi_range(1, 5)
+	print("Spawning ", mouse_count, " mice at enemy death position: ", global_position)
+	
+	# Her mouse için spawn et
+	for i in range(mouse_count):
+		var mouse_instance = mouse_scene.instantiate()
+		if mouse_instance:
+			# Mouse'u sahneye ekle
+			current_scene.add_child(mouse_instance)
+			
+			# Mouse'u enemy'nin pozisyonuna yerleştir (biraz rastgele offset ile)
+			var spawn_offset = Vector3(
+				randf_range(-0.5, 0.5),  # X offset
+				0.0,  # Y offset (yerde)
+				randf_range(-0.5, 0.5)   # Z offset
+			)
+			mouse_instance.global_position = global_position + spawn_offset
+			
+			# Mouse'a rastgele başlangıç yönü ver (set_initial_direction metodu varsa)
+			if mouse_instance.has_method("set_initial_direction"):
+				# Rastgele açı (0-360 derece)
+				var random_angle = randf() * TAU
+				var initial_direction = Vector3(
+					cos(random_angle),
+					0.0,
+					sin(random_angle)
+				).normalized()
+				mouse_instance.set_initial_direction(initial_direction)
+			
+			print("Mouse ", i + 1, " spawned at: ", mouse_instance.global_position)
 	
 	# Size'ı 0'a indir (tween ile)
 	var tween = create_tween()

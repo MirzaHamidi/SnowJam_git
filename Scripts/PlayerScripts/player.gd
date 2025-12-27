@@ -18,6 +18,8 @@ var camera_rotation_x: float = 0.0
 var crosshair_ui: Control = null
 var health_bar_ui: Control = null  # Health bar UI referansı
 var selected_enemy: Node3D = null  # Seçili enemy
+var grabbed_cube: RigidBody3D = null  # Tutulan cubetest
+var grab_distance: float = 3.0  # Tutma mesafesi
 
 @onready var camera: Camera3D = $Camera3D
 @onready var raycast: RayCast3D = $Camera3D/RayCast3D
@@ -172,14 +174,39 @@ func _input(event: InputEvent) -> void:
 			else:
 				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	
-	# Attack input kontrolü - Sol tıklama
-	if Input.is_action_just_pressed("Attack") and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		_cast_magic_spell()
+	# Sol tık ile cubetest fırlatma veya attack
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and event.pressed:
+			if grabbed_cube:
+				# Cubetest tutuluyorsa fırlat
+				_throw_cube()
+			else:
+				# Normal attack
+				if Input.is_action_just_pressed("Attack"):
+					_cast_magic_spell()
 	
-	# Sağ tık ile enemy seçme
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+	# Sağ tık ile cubetest tutma/bırakma veya enemy seçme
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
 		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-			_select_enemy()
+			if event.pressed:
+				# Sağ tık basıldı - cubetest tut veya enemy seç
+				_try_grab_cube()
+				if not grabbed_cube:
+					_select_enemy()
+			else:
+				# Sağ tık bırakıldı - cubetest'i bırak
+				_release_cube()
+	
+	# Sol tık ile cubetest fırlatma veya attack
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and event.pressed:
+			if grabbed_cube:
+				# Cubetest tutuluyorsa fırlat
+				_throw_cube()
+			else:
+				# Normal attack
+				if Input.is_action_just_pressed("Attack"):
+					_cast_magic_spell()
 	
 	# R tuşu ile seçili enemy'yi rewind et
 	if event is InputEventKey and event.pressed and event.keycode == KEY_R:
@@ -230,6 +257,10 @@ func _physics_process(delta: float) -> void:
 	
 	# Raycast ile tetikleyici kontrolü
 	_update_crosshair_color()
+	
+	# Cubetest taşıma kontrolü
+	if grabbed_cube:
+		_update_cube_grab()
 	
 	# Enemy collision kontrolü (enemy'ler kendileri kontrol edecek)
 
@@ -477,3 +508,71 @@ func _select_enemy() -> void:
 			selected_enemy = collider
 			selected_enemy.set_selected(true)
 			print("Enemy selected!")
+
+func _try_grab_cube() -> void:
+	"""Raycast ile cubetest'i tut."""
+	# Önce tutulan cubetest'i bırak
+	if grabbed_cube:
+		_release_cube()
+	
+	# Raycast ile cubetest bul
+	var space_state = get_world_3d().direct_space_state
+	var from = camera.global_position
+	var forward = -camera.global_transform.basis.z
+	var to = from + forward * 10.0  # 10 birim mesafe
+	
+	var query = PhysicsRayQueryParameters3D.create(from, to)
+	query.collision_mask = 1
+	query.collide_with_areas = false
+	query.collide_with_bodies = true
+	
+	var result = space_state.intersect_ray(query)
+	
+	if result:
+		var collider = result.get("collider")
+		# Cubetest mi kontrol et (RigidBody3D ve parent node'u "cubetest" mi?)
+		if collider is RigidBody3D:
+			var rigid_body = collider as RigidBody3D
+			# Parent node'un adı "cubetest" mi kontrol et
+			var parent = rigid_body.get_parent()
+			if parent and parent.name == "cubetest":
+				grabbed_cube = rigid_body
+				grabbed_cube.freeze = true  # Fizik simülasyonunu durdur
+				print("Cubetest grabbed!")
+
+func _release_cube() -> void:
+	"""Tutulan cubetest'i bırak."""
+	if grabbed_cube:
+		grabbed_cube.freeze = false  # Fizik simülasyonunu tekrar başlat
+		grabbed_cube = null
+		print("Cubetest released!")
+
+func _update_cube_grab() -> void:
+	"""Tutulan cubetest'i kameranın önünde tut."""
+	if not grabbed_cube or not camera:
+		return
+	
+	# Kameranın önünde tutma pozisyonu
+	var forward = -camera.global_transform.basis.z
+	var grab_position = camera.global_position + forward * grab_distance
+	
+	# Yumuşak bir şekilde pozisyonu güncelle
+	grabbed_cube.global_position = grabbed_cube.global_position.lerp(grab_position, 0.3)
+
+func _throw_cube() -> void:
+	"""Tutulan cubetest'i fırlat."""
+	if not grabbed_cube or not camera:
+		return
+	
+	# Fizik simülasyonunu tekrar başlat
+	grabbed_cube.freeze = false
+	
+	# Fırlatma yönü (kameranın baktığı yön)
+	var forward = -camera.global_transform.basis.z
+	var throw_force = forward * 20.0  # Fırlatma kuvveti
+	
+	# Kuvvet uygula
+	grabbed_cube.apply_impulse(throw_force, grabbed_cube.global_position - grabbed_cube.global_position)
+	
+	print("Cubetest thrown!")
+	grabbed_cube = null

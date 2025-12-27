@@ -1,14 +1,9 @@
-[gd_scene load_steps=5 format=3 uid="uid://c2ko50kivid8r"]
+[gd_scene load_steps=4 format=3 uid="uid://c2ko50kivid8r"]
 
 [ext_resource type="Script" uid="uid://y8gq8vyavxv1" path="res://Scripts/Enemy.gd" id="1_enemy"]
+[ext_resource type="PackedScene" uid="uid://debfk42hps6gd" path="res://Assets/Enemy/Enemy_05(DanceAnim).blend1.blend" id="2_1f0kj"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_enemy"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hghv2"]
-albedo_color = Color(0.6284565, 0, 0.20009631, 1)
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_enemy"]
-material = SubResource("StandardMaterial3D_hghv2")
 
 [node name="Enemy" type="CharacterBody3D"]
 script = ExtResource("1_enemy")
@@ -17,6 +12,5 @@ script = ExtResource("1_enemy")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("CapsuleShape3D_enemy")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-mesh = SubResource("CapsuleMesh_enemy")
+[node name="Enemy_05(DanceAnim)_blend1" parent="." instance=ExtResource("2_1f0kj")]
+transform = Transform3D(-0.99809086, 0, 0.061762728, 0, 1, 0, -0.061762728, 0, -0.99809086, -0.014613807, 1.3516462, 0.12491512)
