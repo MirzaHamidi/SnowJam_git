@@ -23,7 +23,23 @@ size = Vector3(2.175, 1.985, 2.25)
 
 [node name="EnemyShooter" type="CharacterBody3D"]
 script = ExtResource("1_enemy_shooter")
+move_speed = null
+acceleration = null
+rotation_speed = null
+desired_distance = null
+stop_distance = null
+retreat_distance = null
 projectile_scene = ExtResource("3_projectile")
+fire_rate = null
+projectile_speed = null
+projectile_damage = null
+max_range = null
+aim_offset = null
+path_update_interval = null
+path_desired_distance = null
+target_desired_distance = null
+max_health = null
+current_health = null
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
@@ -40,7 +56,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0.8)
 
 [node name="MuzzleFlash" type="GPUParticles3D" parent="Muzzle"]
 transform = Transform3D(0.010524274, 0, -0.9999446, 0, 1, 0, 0.9999446, 0, 0.010524274, -0.3371849, 0.37814665, -0.66901445)
-visible = false
 material_override = SubResource("StandardMaterial3D_3l2bp")
 emitting = false
 amount = 30

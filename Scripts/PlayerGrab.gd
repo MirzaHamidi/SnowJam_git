@@ -27,6 +27,7 @@ var grab_ray: RayCast3D = null
 var hold_point: Node3D = null
 
 var held_body: RigidBody3D = null
+var held_item: Node = null  # ShieldItem veya diğer tutulan item'lar
 var is_grabbing: bool = false
 
 # ============================================
@@ -129,23 +130,49 @@ func _try_grab() -> void:
 	if not grab_ray or not grab_ray.is_colliding():
 		return
 	
-	var collider = grab_ray.get_collider()
-	if not collider:
+	var hit = grab_ray.get_collider()
+	if not hit:
 		return
 	
-	# Grabbable grup kontrolü
-	if not collider.is_in_group("grabbable"):
-		return
+	# Debug log
+	print("[Grab] Ray hit: ", hit, " class=", hit.get_class(), " name=", hit.name)
 	
 	# RigidBody3D kontrolü
 	var rigid_body: RigidBody3D = null
-	if collider is RigidBody3D:
-		rigid_body = collider as RigidBody3D
-	elif collider.get_parent() is RigidBody3D:
-		rigid_body = collider.get_parent() as RigidBody3D
+	
+	# Eğer hit bir Area3D ise (GrabProxy olabilir)
+	if hit is Area3D:
+		# GrabProxy kontrolü
+		if hit.name == "GrabProxy" or hit.is_in_group("grabbable_proxy"):
+			# Gerçek objeyi bul (parent Shield)
+			var shield = hit.get_parent()
+			if shield is RigidBody3D:
+				rigid_body = shield as RigidBody3D
+				print("[Grab] Found shield via GrabProxy: ", rigid_body.name)
+			else:
+				print("[Grab] GrabProxy parent is not RigidBody3D: ", shield.get_class())
+		else:
+			print("[Grab] Area3D hit but not GrabProxy: ", hit.name)
+	# Eğer hit doğrudan RigidBody3D ise
+	elif hit is RigidBody3D:
+		rigid_body = hit as RigidBody3D
+		print("[Grab] Direct RigidBody3D hit: ", rigid_body.name)
+	# Eğer hit'in parent'ı RigidBody3D ise
+	elif hit.get_parent() is RigidBody3D:
+		rigid_body = hit.get_parent() as RigidBody3D
+		print("[Grab] Found RigidBody3D via parent: ", rigid_body.name)
 	
 	if not rigid_body:
+		print("[Grab] No RigidBody3D found from hit")
 		return
+	
+	# Grabbable grup kontrolü
+	if not rigid_body.is_in_group("grabbable"):
+		print("[Grab] RigidBody3D is not in 'grabbable' group")
+		return
+	
+	# Debug log
+	print("[Grab] held_body: ", rigid_body.name)
 	
 	# Tut
 	_grab(rigid_body)
@@ -154,33 +181,91 @@ func _try_grab() -> void:
 func _grab(body: RigidBody3D) -> void:
 	"""Objeyi tut."""
 	held_body = body
+	held_item = body  # ShieldItem script'i body'de olduğu için direkt body
 	is_grabbing = true
+	
+	# Freeze yap (elde stabil)
+	body.freeze = true
 	
 	# Shield ise held state'e al (set_held metodu varsa)
 	if body.has_method("set_held"):
 		body.set_held(true, player)
 	
-	print("PlayerGrab: Grabbed ", body.name)
+	# ShieldItem ise broken ve tree_exited signal'larını bağla
+	if body.has_signal("broken"):
+		if not body.broken.is_connected(_on_held_broken):
+			body.broken.connect(_on_held_broken)
+	
+	# tree_exited signal'ını bağla (güvenlik)
+	if not body.tree_exiting.is_connected(_on_held_tree_exiting):
+		body.tree_exiting.connect(_on_held_tree_exiting)
+	
+	print("[Grab] PlayerGrab: Grabbed ", body.name, " freeze=", body.freeze)
 
 
 func _drop() -> void:
 	"""Tutulan objeyi bırak."""
-	if not is_grabbing or not held_body:
+	if not is_grabbing:
 		return
 	
-	# Shield ise held state'den çıkar (set_held metodu varsa)
-	if held_body.has_method("set_held"):
-		held_body.set_held(false, null)
+	clear_held()
+
+
+func clear_held() -> void:
+	"""Held item'ı temizle (kırılma veya drop için)."""
+	if held_item and is_instance_valid(held_item):
+		# Signal bağlantılarını kaldır
+		if held_item.has_signal("broken") and held_item.broken.is_connected(_on_held_broken):
+			held_item.broken.disconnect(_on_held_broken)
+		if held_item.tree_exiting.is_connected(_on_held_tree_exiting):
+			held_item.tree_exiting.disconnect(_on_held_tree_exiting)
+		
+		# Shield ise held state'den çıkar (set_held metodu varsa)
+		if held_item.has_method("set_held"):
+			held_item.set_held(false, null)
+	
+	if held_body and is_instance_valid(held_body):
+		# Freeze'i kaldır
+		held_body.freeze = false
+	
+	var dropped_name = ""
+	if held_body and is_instance_valid(held_body):
+		dropped_name = held_body.name
 	
 	held_body = null
+	held_item = null
 	is_grabbing = false
-	print("PlayerGrab: Dropped object")
+	print("[Grab] cleared held item: ", dropped_name)
+
+
+func _on_held_broken(_shield: Node) -> void:
+	"""Held shield kırıldığında çağrılır."""
+	print("[Grab] held shield broken -> clearing")
+	clear_held()
+
+
+func _on_held_tree_exiting() -> void:
+	"""Held item tree'den çıkarken çağrılır (güvenlik)."""
+	print("[Grab] held item tree_exiting -> clearing")
+	clear_held()
 
 
 # ============================================
 # PHYSICS PROCESS (Transform Interpolation for Shield)
 # ============================================
 func _physics_process(delta: float) -> void:
+	# Validity kontrolü (fallback - held item geçersiz hale gelirse temizle)
+	if is_grabbing:
+		if held_body == null or not is_instance_valid(held_body):
+			print("[Grab] held_body invalid -> clearing")
+			clear_held()
+			return
+		
+		if held_item != null and not is_instance_valid(held_item):
+			print("[Grab] held_item invalid -> clearing")
+			clear_held()
+			return
+	
 	if not is_grabbing or not held_body or not hold_point:
 		return
 	

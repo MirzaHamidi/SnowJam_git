@@ -24,6 +24,9 @@ extends CharacterBody3D
 @export var max_health: int = 20
 @export var current_health: int = 20
 
+@export_group("Knockback")
+@export var knockback_decay: float = 18.0  # Knockback hızının azalma hızı
+
 # ============================================
 # INTERNAL VARIABLES
 # ============================================
@@ -41,6 +44,9 @@ var position_update_threshold: float = 1.0  # Player bu kadar hareket ederse pat
 # Fallback: NavAgent yoksa direkt follow
 var use_direct_follow: bool = false
 
+# Knockback
+var knockback_vel: Vector3 = Vector3.ZERO
+
 # ============================================
 # READY
 # ============================================
@@ -48,6 +54,9 @@ func _ready() -> void:
 	# Health başlat
 	current_health = max_health
 	is_dead = false
+	
+	# Enemy grubuna ekle
+	add_to_group("enemy")
 	
 	# Node referanslarını bul
 	_setup_nodes()
@@ -158,6 +167,8 @@ func _physics_process(delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0, acceleration * delta)
 		# Sadece player'a bak
 		_look_at_player(delta)
+		# Knockback uygula (mevcut velocity'ye ekle)
+		_apply_knockback(delta)
 		move_and_slide()
 		return
 	else:
@@ -169,6 +180,8 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0, acceleration * delta)
 		velocity.z = move_toward(velocity.z, 0, acceleration * delta)
 		_look_at_player(delta)
+		# Knockback uygula (mevcut velocity'ye ekle)
+		_apply_knockback(delta)
 		move_and_slide()
 		return
 	
@@ -177,6 +190,9 @@ func _physics_process(delta: float) -> void:
 		_follow_navigation(delta)
 	else:
 		_follow_direct(delta)
+	
+	# Knockback uygula (mevcut velocity'ye ekle)
+	_apply_knockback(delta)
 	
 	# Hareketi uygula
 	move_and_slide()
@@ -193,6 +209,20 @@ func _apply_gravity(delta: float) -> void:
 		# Yerdeyse y hızını sıfırla
 		if velocity.y < 0:
 			velocity.y = 0
+
+
+func _apply_knockback(delta: float) -> void:
+	"""Knockback velocity'yi mevcut velocity'ye ekle ve decay uygula."""
+	if knockback_vel.length() < 0.1:
+		knockback_vel = Vector3.ZERO
+		return
+	
+	# Knockback'i velocity'ye ekle (sadece XZ, Y değil)
+	velocity.x += knockback_vel.x
+	velocity.z += knockback_vel.z
+	
+	# Knockback decay (yavaşça azalt)
+	knockback_vel = knockback_vel.move_toward(Vector3.ZERO, knockback_decay * delta)
 
 
 func _follow_navigation(delta: float) -> void:
@@ -310,6 +340,17 @@ func _on_attack_range_exited(body: Node) -> void:
 	"""Attack range'dan bir şey çıktı."""
 	if body == player or body.get_parent() == player or body.is_in_group("player"):
 		attack_ready = false
+
+
+# ============================================
+# KNOCKBACK
+# ============================================
+func apply_knockback(dir: Vector3, strength: float) -> void:
+	"""Knockback uygula (deflected projectile tarafından çağrılır)."""
+	# Y eksenini sıfırla (sadece yatay knockback)
+	dir.y = 0
+	knockback_vel = dir.normalized() * strength
+	print("[ENEMY] Knockback applied: ", knockback_vel, " strength=", strength)
 
 
 # ============================================

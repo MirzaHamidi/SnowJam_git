@@ -1,18 +1,12 @@
-extends CharacterBody3D
+extends "res://Scripts/EnemyFollow.gd"
 
 ## Enemy Shooter - Uzak mesafe düşman, projectile fırlatır
 
 # ============================================
-# EXPORT PARAMETERS
+# EXPORT PARAMETERS (EnemyShooter'a özel)
 # ============================================
-@export_group("Movement")
-@export var move_speed: float = 3.0
-@export var acceleration: float = 10.0
-@export var rotation_speed: float = 5.0
-
 @export_group("Distances")
 @export var desired_distance: float = 10.0  # İdeal mesafe (player'dan uzak durur)
-@export var stop_distance: float = 8.0  # Bu mesafede durur
 @export var retreat_distance: float = 6.0  # Bu mesafeden yakınsa geri kaçar
 
 @export_group("Combat")
@@ -23,69 +17,33 @@ extends CharacterBody3D
 @export var max_range: float = 35.0
 @export var aim_offset: Vector3 = Vector3(0, 1.0, 0)  # Player'ın göğsüne nişan al
 
-@export_group("Navigation")
-@export var path_update_interval: float = 0.2
-@export var path_desired_distance: float = 0.5
-@export var target_desired_distance: float = 0.5
-
-@export_group("Health")
-@export var max_health: int = 15
-@export var current_health: int = 15
-
 # ============================================
-# INTERNAL VARIABLES
+# INTERNAL VARIABLES (EnemyShooter'a özel)
 # ============================================
-var player: Node3D = null
-var nav_agent: NavigationAgent3D = null
-var visual_node: Node3D = null
 var muzzle: Node3D = null
 var muzzle_flash: GPUParticles3D = null
 var line_of_sight: RayCast3D = null
-
-var is_dead: bool = false
 var fire_cooldown: float = 0.0
-var path_update_timer: float = 0.0
-var last_player_position: Vector3 = Vector3.ZERO
-var position_update_threshold: float = 1.0
-
-var use_direct_follow: bool = false
 
 # ============================================
 # READY
 # ============================================
 func _ready() -> void:
-	# Health başlat
-	current_health = max_health
-	is_dead = false
+	# EnemyFollow'daki _ready'i çağır (health, nodes, player, navigation setup)
+	super._ready()
 	
-	# Node referanslarını bul
-	_setup_nodes()
+	# EnemyShooter'a özel node'ları bul
+	_setup_shooter_nodes()
 	
-	# Player'ı bul
-	_find_player()
-	
-	# NavigationAgent ayarlarını yap
-	_setup_navigation()
-	
-	# Animasyonu başlat
-	call_deferred("_play_mixamo_animation")
-
-
-func _setup_nodes() -> void:
-	"""Gerekli node'ları bul ve kaydet."""
-	# NavigationAgent3D
-	nav_agent = get_node_or_null("NavAgent")
-	if not nav_agent:
-		print("WARNING: EnemyShooter - NavAgent not found! Using direct follow fallback.")
-		use_direct_follow = true
+	# Projectile scene kontrolü
+	if not projectile_scene:
+		push_warning("EnemyShooter - projectile_scene not set! Will not be able to shoot.")
 	else:
-		use_direct_follow = false
-	
-	# Visual node
-	visual_node = get_node_or_null("Visual")
-	if not visual_node:
-		print("WARNING: EnemyShooter - Visual node not found!")
-	
+		print("EnemyShooter - Projectile scene set: ", projectile_scene.resource_path)
+
+
+func _setup_shooter_nodes() -> void:
+	"""EnemyShooter'a özel node'ları bul ve kaydet."""
 	# Muzzle (silah ucu)
 	muzzle = get_node_or_null("Muzzle")
 	if not muzzle:
@@ -103,7 +61,7 @@ func _setup_nodes() -> void:
 
 
 func _find_player() -> void:
-	"""Player'ı 'player' grubundan bul."""
+	"""Player'ı 'player' grubundan bul (EnemyFollow'dan override)."""
 	var player_node = get_tree().get_first_node_in_group("player")
 	
 	if not player_node:
@@ -111,8 +69,11 @@ func _find_player() -> void:
 		player = null
 		return
 	
-	# Player Node3D ise CharacterBody3D'yi al
-	if player_node is Node3D and not player_node is CharacterBody3D:
+	# Player root'u CharacterBody3D ise direkt kullan
+	if player_node is CharacterBody3D:
+		player = player_node
+	# Player Node3D ise CharacterBody3D'yi al (eğer varsa)
+	elif player_node is Node3D:
 		var character_body = player_node.get_node_or_null("CharacterBody3D")
 		if character_body:
 			player = character_body
@@ -123,26 +84,7 @@ func _find_player() -> void:
 	
 	if player:
 		last_player_position = player.global_position
-		print("EnemyShooter: Player found at position: ", player.global_position)
-
-
-func _setup_navigation() -> void:
-	"""NavigationAgent3D ayarlarını yap."""
-	if not nav_agent:
-		return
-	
-	nav_agent.path_desired_distance = path_desired_distance
-	nav_agent.target_desired_distance = target_desired_distance
-	nav_agent.path_max_distance = 50.0
-	
-	nav_agent.avoidance_enabled = true
-	nav_agent.radius = 0.5
-	
-	if player:
-		nav_agent.target_position = player.global_position
-	
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+		print("EnemyShooter - Player found: ", player.name, " at position: ", player.global_position)
 
 
 # ============================================
@@ -153,8 +95,7 @@ func _physics_process(delta: float) -> void:
 		return
 	
 	# Player'ı sürekli kontrol et (bulunamazsa tekrar dene)
-	# Player'ı sürekli kontrol et (bulunamazsa tekrar dene)
-	if not player:
+	if not player or not is_instance_valid(player):
 		_find_player()
 		if not player:
 			velocity.x = move_toward(velocity.x, 0, acceleration * delta)
@@ -163,28 +104,8 @@ func _physics_process(delta: float) -> void:
 			move_and_slide()
 			return
 	
-	# Player geçersiz hale gelmişse tekrar bul
-	if not is_instance_valid(player):
-		_find_player()
-		if not player:
-			velocity.x = move_toward(velocity.x, 0, acceleration * delta)
-			velocity.z = move_toward(velocity.z, 0, acceleration * delta)
-			_apply_gravity(delta)
-			move_and_slide()
-			return
-	
-	# Player geçersiz hale gelmişse tekrar bul
-	if not is_instance_valid(player):
-		_find_player()
-		if not player:
-			velocity.x = move_toward(velocity.x, 0, acceleration * delta)
-			velocity.z = move_toward(velocity.z, 0, acceleration * delta)
-			_apply_gravity(delta)
-			move_and_slide()
-			return
-	
-	# Gravity
-	_apply_gravity(delta)
+	# Gravity (EnemyFollow'dan super çağır)
+	super._apply_gravity(delta)
 	
 	# Mesafe kontrolü
 	var distance_to_player = _get_distance_to_player()
@@ -220,55 +141,22 @@ func _physics_process(delta: float) -> void:
 	_update_rotation(delta)
 
 
-func _apply_gravity(delta: float) -> void:
-	"""Y ekseninde gravity uygula."""
-	if not is_on_floor():
-		velocity.y += get_gravity().y * delta
-	else:
-		if velocity.y < 0:
-			velocity.y = 0
-
-
 func _follow_player(delta: float) -> void:
-	"""Player'ı takip et (navigation veya direkt)."""
+	"""Player'ı takip et (EnemyFollow'dan override - navigation veya direkt)."""
+	if not player:
+		return
+	
+	# Navigation yoksa veya fallback aktifse direkt follow
 	if not nav_agent or use_direct_follow:
 		_follow_direct(delta)
 		return
 	
-	# Path update
-	path_update_timer -= delta
-	var player_moved = (player.global_position - last_player_position).length() > position_update_threshold
-	
-	if path_update_timer <= 0.0 or player_moved:
-		nav_agent.target_position = player.global_position
-		last_player_position = player.global_position
-		path_update_timer = path_update_interval
-	
-	# Navigation ile hareket
-	if not nav_agent.is_navigation_finished():
-		var next_path_pos = nav_agent.get_next_path_position()
-		var current_pos = global_position
-		
-		var distance_to_next = (next_path_pos - current_pos).length()
-		if distance_to_next < 0.1:
-			velocity.x = move_toward(velocity.x, 0, acceleration * delta)
-			velocity.z = move_toward(velocity.z, 0, acceleration * delta)
-			return
-		
-		var direction = (next_path_pos - current_pos)
-		direction.y = 0
-		direction = direction.normalized()
-		
-		var target_velocity = direction * move_speed
-		velocity.x = move_toward(velocity.x, target_velocity.x, acceleration * delta)
-		velocity.z = move_toward(velocity.z, target_velocity.z, acceleration * delta)
-	else:
-		velocity.x = move_toward(velocity.x, 0, acceleration * delta)
-		velocity.z = move_toward(velocity.z, 0, acceleration * delta)
+	# EnemyFollow'daki _follow_navigation mantığını kullan
+	_follow_navigation(delta)
 
 
 func _follow_direct(delta: float) -> void:
-	"""Fallback: Direkt player'a doğru git."""
+	"""Fallback: Direkt player'a doğru git (EnemyFollow'dan override)."""
 	if not player:
 		return
 	
@@ -276,12 +164,18 @@ func _follow_direct(delta: float) -> void:
 	direction.y = 0
 	var distance = direction.length()
 	
-	if distance > stop_distance:
-		direction = direction.normalized()
-		var target_velocity = direction * move_speed
-		velocity.x = move_toward(velocity.x, target_velocity.x, acceleration * delta)
-		velocity.z = move_toward(velocity.z, target_velocity.z, acceleration * delta)
+	# Eğer desired_distance'dan uzaksa yaklaş
+	if distance > desired_distance:
+		if distance > 0.1:  # Çok yakın değilse hareket et
+			direction = direction.normalized()
+			var target_velocity = direction * move_speed
+			velocity.x = move_toward(velocity.x, target_velocity.x, acceleration * delta)
+			velocity.z = move_toward(velocity.z, target_velocity.z, acceleration * delta)
+		else:
+			velocity.x = move_toward(velocity.x, 0, acceleration * delta)
+			velocity.z = move_toward(velocity.z, 0, acceleration * delta)
 	else:
+		# İdeal mesafede veya daha yakın, dur
 		velocity.x = move_toward(velocity.x, 0, acceleration * delta)
 		velocity.z = move_toward(velocity.z, 0, acceleration * delta)
 
@@ -300,31 +194,7 @@ func _retreat_from_player(delta: float) -> void:
 	velocity.z = move_toward(velocity.z, target_velocity.z, acceleration * delta)
 
 
-func _update_rotation(delta: float) -> void:
-	"""Player'a doğru dön (sadece Y ekseni)."""
-	if not player:
-		return
-	
-	var direction = (player.global_position - global_position)
-	direction.y = 0
-	if direction.length() > 0.01:
-		var target_rotation_y = atan2(direction.x, direction.z)
-		rotation.y = lerp_angle(rotation.y, target_rotation_y, rotation_speed * delta)
-
-
-func _look_at_player(delta: float) -> void:
-	"""Player'a doğru bak."""
-	_update_rotation(delta)
-
-
-func _get_distance_to_player() -> float:
-	"""Player'a olan yatay mesafeyi döndür."""
-	if not player:
-		return INF
-	
-	var to_player = player.global_position - global_position
-	to_player.y = 0
-	return to_player.length()
+# _update_rotation, _look_at_player, _get_distance_to_player EnemyFollow'da zaten var, kullanıyoruz
 
 
 # ============================================
@@ -393,17 +263,26 @@ func _shoot() -> void:
 	var target_pos = player.global_position + aim_offset
 	var direction = (target_pos - muzzle.global_position).normalized()
 	
-	# Projectile ayarlarını set et
+	# Grup kontrolü (önce ekle)
+	if not projectile_instance.is_in_group("projectile"):
+		projectile_instance.add_to_group("projectile")
+		print("[ENEMYSHOOTER] Added projectile to 'projectile' group")
+	
+	# Projectile ayarlarını set et (ProjectileBall için)
 	if projectile_instance.has_method("setup"):
-		projectile_instance.setup(direction, projectile_speed, projectile_damage)
+		projectile_instance.setup(direction, projectile_speed, projectile_damage, self)
+		print("[ENEMYSHOOTER] Projectile fired with setup() method")
 	else:
-		# Duck typing: direkt property'leri set et
-		if "dir" in projectile_instance:
-			projectile_instance.dir = direction
+		# Duck typing: direkt property'leri set et (eski sistem için)
+		if "velocity" in projectile_instance:
+			projectile_instance.velocity = direction.normalized() * projectile_speed
 		if "speed" in projectile_instance:
 			projectile_instance.speed = projectile_speed
 		if "damage" in projectile_instance:
 			projectile_instance.damage = projectile_damage
+		if "projectile_owner" in projectile_instance:
+			projectile_instance.projectile_owner = self
+		print("[ENEMYSHOOTER] Projectile fired with direct property assignment")
 	
 	# Cooldown başlat
 	fire_cooldown = fire_rate
@@ -413,7 +292,7 @@ func _shoot() -> void:
 		muzzle_flash.restart()
 		muzzle_flash.emitting = true
 	
-	print("EnemyShooter: Fired projectile at player! Direction: ", direction, " Target: ", target_pos)
+	print("[ENEMYSHOOTER] Fired projectile at player! Direction: ", direction, " Target: ", target_pos)
 
 
 # ============================================
@@ -507,4 +386,3 @@ func _die() -> void:
 	var tween = create_tween()
 	tween.tween_property(self, "scale", Vector3.ZERO, 0.3)
 	tween.tween_callback(queue_free)
-
