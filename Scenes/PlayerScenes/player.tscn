@@ -1,7 +1,8 @@
-[gd_scene load_steps=19 format=3 uid="uid://dilmi138y4khk"]
+[gd_scene load_steps=20 format=3 uid="uid://dilmi138y4khk"]
 
 [ext_resource type="Script" uid="uid://c3xfo4tp0gyqo" path="res://Scripts/PlayerScripts/player.gd" id="1_onrkg"]
 [ext_resource type="AudioStream" uid="uid://bcboy75a2ro7a" path="res://Assets/müzikler/müzik 2.wav" id="2_2oab2"]
+[ext_resource type="Script" uid="uid://d0sq0wbvfkt38" path="res://Scripts/PlayerGrab.gd" id="2_grab"]
 [ext_resource type="PackedScene" uid="uid://dgpoc40wpb7fj" path="res://Scenes/Test/crosshair.tscn" id="3_2oab2"]
 [ext_resource type="PackedScene" uid="uid://bl4b1ypu2o4m3" path="res://Scenes/asa.tscn" id="4_pu5dk"]
 [ext_resource type="AudioStream" uid="uid://c7fr4rhgrvw2l" path="res://Assets/müzikler/wind-magic-5.wav" id="5_sn0nf"]
@@ -128,6 +129,9 @@ _data = {
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 script = ExtResource("1_onrkg")
 
+[node name="PlayerGrab" type="Node" parent="CharacterBody3D"]
+script = ExtResource("2_grab")
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CharacterBody3D"]
 shape = SubResource("CapsuleShape3D_4flbx")
 
@@ -136,6 +140,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55351615, -0.3735358)
 
 [node name="RayCast3D" type="RayCast3D" parent="CharacterBody3D/Camera3D"]
 target_position = Vector3(0, 0, -100)
+
+[node name="GrabRay" type="RayCast3D" parent="CharacterBody3D/Camera3D"]
+target_position = Vector3(0, 0, -7)
+
+[node name="HoldPoint" type="Node3D" parent="CharacterBody3D/Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.2, -1.8)
 
 [node name="GameScene_Music" type="AudioStreamPlayer2D" parent="CharacterBody3D/Camera3D"]
 stream = ExtResource("2_2oab2")

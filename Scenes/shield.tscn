@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://dnodn4muar8er"]
+
+[ext_resource type="Script" uid="uid://cenqn33xaa5g0" path="res://Scripts/ShieldItem.gd" id="1_shield"]
+[ext_resource type="PackedScene" uid="uid://v66strkhxu18" path="res://Assets/Kalkan.blend" id="2_kalkan"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_oux8c"]
+size = Vector3(1.7923486, 2.0043628, 0.085)
+
+[node name="Shield" type="RigidBody3D" groups=["grabbable", "shield"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.13350183, 0)
+mass = 0.124
+script = ExtResource("1_shield")
+
+[node name="BlockArea" type="Area3D" parent="."]
+transform = Transform3D(0.2780686, 0, 0, 0, 0.2780686, 0, 0, 0, 0.2780686, -0.0013052109, 0.42150205, -0.0068100123)
+monitorable = false
+
+[node name="Kalkan" parent="." instance=ExtResource("2_kalkan")]
+transform = Transform3D(0.533, 0, 0, 0, 0.533, 0, 0, 0, 0.533, -0.0033161396, 0.65852076, -0.017302148)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(0.533, 0, 0, 0, 0.533, 0, 0, 0, 0.533, -0.0038582738, 0.665773, 0)
+shape = SubResource("BoxShape3D_oux8c")
