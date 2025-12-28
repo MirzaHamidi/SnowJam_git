@@ -57,21 +57,19 @@ var damage_multiplier: int = 1
 # GODOT CALLBACKS
 # ============================================
 func _ready() -> void:
-	# DEBUG: Projectile ROOT tipi
-	print("[Projectile] ready type=", get_class(), " root=", name)
-	
 	add_to_group("projectile")
+	
+	# Area3D'ler birbirini algılamak için monitorable = true olmalı (BlockArea projectile'ı algılayabilmek için)
+	# Bu ayar her zaman aktif olmalı
+	monitorable = true
+	
 	_initialize_life_timer()
 	_setup_mesh_instance()
 	_apply_red_material()
 	
-	# Area3D'ler birbirini algılamak için monitorable = true olmalı (BlockArea projectile'ı algılayabilmek için)
-	monitorable = true
-	
-	# TEST AMAÇLI: Collision layer/mask ALL
-	collision_layer = 4294967295
-	collision_mask = 4294967295
-	print("[Projectile] TEST: collision_layer=ALL mask=ALL monitorable=", monitorable)
+	# Collision'ı bir frame sonra aktif et (spawn collision'ı önlemek için)
+	# Önce collision mask'i ayarla ama signal'ları sonra bağla
+	_setup_collision_mask(false)
 	
 	# Signal'ları bir frame sonra bağla (spawn collision'ı önlemek için)
 	call_deferred("_connect_signals")
@@ -80,7 +78,7 @@ func _ready() -> void:
 	monitoring = false
 	call_deferred("_enable_monitoring")
 	
-	print("[Projectile] Spawned at position: ", global_position, " color=RED, enemy-collision=OFF")
+	print("[Projectile] ready: monitorable=", monitorable, " monitoring=", monitoring, " groups=", get_groups())
 
 
 func _physics_process(delta: float) -> void:
@@ -114,7 +112,7 @@ func _physics_process(delta: float) -> void:
 # ============================================
 # PUBLIC API
 # ============================================
-func setup(direction: Vector3, projectile_speed: float, projectile_damage: int, shooter: Node = null) -> void:
+func setup(direction: Vector3, projectile_speed: float, projectile_damage: int, shooter: Node = null, projectile_lifetime: float = -1.0) -> void:
 	"""Projectile ayarlarını yap (EnemyShooter'dan çağrılır)."""
 	# Direction'ı normalize et ve velocity'yi ayarla
 	var normalized_direction = direction.normalized()
@@ -125,10 +123,18 @@ func setup(direction: Vector3, projectile_speed: float, projectile_damage: int, 
 	original_shooter = shooter  # Orijinal shooter'ı sakla (deflect edildikten sonra da korunur)
 	is_deflected = false
 	damage_multiplier = 1
+	
+	if projectile_lifetime > 0:
+		life_time = projectile_lifetime
+		life_timer = projectile_lifetime
+	
+	# monitorable'ı garanti et (BlockArea projectile'ı algılayabilmek için)
+	monitorable = true
+	
 	_setup_collision_mask(false)
 	
 	if debug_enabled:
-		print("[PROJECTILE] Setup: direction=", normalized_direction, " velocity=", velocity, " speed=", projectile_speed, " base_damage=", base_damage, " original_shooter=", shooter)
+		print("[PROJECTILE] Setup: direction=", normalized_direction, " velocity=", velocity, " speed=", projectile_speed, " base_damage=", base_damage, " original_shooter=", shooter, " monitorable=", monitorable)
 
 
 func deflect(dir: Vector3, force: float, source: Node) -> void:
@@ -143,13 +149,25 @@ func deflect(dir: Vector3, force: float, source: Node) -> void:
 	projectile_owner = source
 	damage_multiplier = DEFLECT_DAMAGE_MULTIPLIER
 	
+	# 1. PAUSE: Hareketi durdur
+	velocity = Vector3.ZERO
+	
+	# 2. COLOR: Rengi sarı yap
+	apply_color(YELLOW_COLOR)
+	
+	# 3. WAIT: Kısa bir süre bekle (deflect effect)
+	await get_tree().create_timer(0.1).timeout
+	
+	if not is_instance_valid(self):
+		return
+		
+	# 4. MOVE: Yeni yöne fırlat
 	# Deflect direction'ı normalize et ve velocity'yi ayarla
 	var normalized_dir = dir.normalized()
 	velocity = normalized_dir * force
 	speed = force  # Speed'i de güncelle
-	global_position += normalized_dir * DEFLECT_OFFSET
+	# global_position += normalized_dir * DEFLECT_OFFSET # Pause olduğu için offset'e gerek olmayabilir, ama çakışmayı önlemek için iyi olabilir
 	
-	apply_color(YELLOW_COLOR)
 	_setup_collision_mask(true)
 	
 	print("[Projectile] deflected OK -> yellow, enemy-collision ON, dmg x2")
@@ -203,8 +221,10 @@ func _apply_red_material() -> void:
 
 func _setup_collision_mask(enable_enemy: bool) -> void:
 	var mask = 0
-	# Layer 1: World, Shield ve Enemy (hepsi layer 1'de)
-	mask |= (1 << (LAYER_WORLD - 1))  # Layer 1: World, Shield ve Enemy
+	# Layer 1: World
+	mask |= (1 << (LAYER_WORLD - 1))
+	# Layer 5: Shield
+	mask |= (1 << (LAYER_SHIELD - 1))
 	
 	if enable_enemy:
 		# Enemy'ler de layer 1'de olduğu için zaten mask'te var
@@ -216,7 +236,8 @@ func _setup_collision_mask(enable_enemy: bool) -> void:
 	
 	collision_mask = mask
 	
-	print("[PROJECTILE] Collision mask updated. Enemy enabled: ", enable_enemy, " mask=", mask, " (Layer 1 = World+Shield+Enemy)")
+	if debug_enabled:
+		print("[PROJECTILE] Collision mask updated. Enemy enabled: ", enable_enemy, " mask=", mask, " (Layer 1 = World+Shield+Enemy)")
 
 # ============================================
 # PRIVATE HELPERS - COLLISION HANDLING
@@ -246,13 +267,23 @@ func _on_body_entered(body: Node) -> void:
 func _on_area_entered(area: Area3D) -> void:
 	print("[Projectile] area_entered:", area.name, " type=", area.get_class(), " groups=", area.get_groups(), " is_deflected=", is_deflected)
 	
-	# BlockArea veya shield ile collision (Area3D olarak)
-	if area.name == "BlockArea":
-		var shield = area.get_parent()
-		if shield and shield.is_in_group("shield"):
-			print("[Projectile] Hit BlockArea, shield found:", shield.name)
-			# ShieldItem zaten _try_deflect'i çağıracak, burada sadece log
-			return
+	# Shield group check - Proactive deflection
+	if area.is_in_group("shield"):
+		var shield = area
+		# Eğer area'nın kendisinde method yoksa parent'a bak (BlockArea durumu)
+		if not shield.has_method("get_deflect_direction_with_assist"):
+			shield = area.get_parent()
+			
+		if shield and shield.has_method("get_deflect_direction_with_assist"):
+			# Shield tutuluyor mu kontrol et
+			if shield.has_method("is_shield_held") and shield.is_shield_held():
+				print("[PROJECTILE] Hit shield area (active), deflecting...")
+				var deflect_dir = shield.get_deflect_direction_with_assist()
+				var deflect_force = shield.deflect_force if "deflect_force" in shield else 26.0
+				deflect(deflect_dir, deflect_force, shield)
+				if shield.has_method("consume_block"):
+					shield.consume_block()
+				return
 	
 	_handle_collision(area)
 
@@ -289,10 +320,6 @@ func _is_player(target: Node) -> bool:
 
 func _is_shield(target: Node) -> bool:
 	"""Shield veya BlockArea mı kontrol et."""
-	if target.name == "BlockArea":
-		var shield = target.get_parent()
-		if shield and shield.is_in_group("shield"):
-			return true
 	return target.is_in_group("shield") or (target.get_parent() and target.get_parent().is_in_group("shield"))
 
 

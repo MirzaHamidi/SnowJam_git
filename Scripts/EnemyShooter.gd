@@ -24,8 +24,9 @@ extends CharacterBody3D
 @export_group("Combat")
 @export var projectile_scene: PackedScene = null
 @export var fire_rate: float = 1.2
-@export var projectile_speed: float = 18.0
-@export var projectile_damage: int = 1
+@export var projectile_speed: float = 8.0
+@export var projectile_damage: int = 5
+@export var projectile_lifetime: float = 3.0
 @export var max_range: float = 35.0
 @export var aim_offset: Vector3 = Vector3(0, 1.0, 0)
 
@@ -377,7 +378,7 @@ func _shoot() -> void:
 	# Projectile'ı spawn et ve pozisyonunu biraz ileriye al (spawn collision'ı önlemek için)
 	current_scene.add_child(projectile_instance)
 	# Spawn pozisyonunu direction yönünde daha büyük bir offset ile ileriye al
-	var spawn_offset = direction * 0.5  # 0.5 birim ileriye al (spawn collision'ı önlemek için)
+	var spawn_offset = direction * 5  # 0.5 birim ileriye al (spawn collision'ı önlemek için)
 	projectile_instance.global_position = muzzle.global_position + spawn_offset
 	
 	_configure_projectile(projectile_instance, direction)
@@ -411,7 +412,10 @@ func _configure_projectile(projectile: Node, direction: Vector3) -> void:
 			print("[ENEMYSHOOTER] Added projectile to 'projectile' group")
 	
 	if projectile.has_method("setup"):
-		projectile.setup(direction, projectile_speed, projectile_damage, self)
+		# Check argument count of setup method to maintain backward compatibility
+		# setup(direction, speed, damage, shooter, lifetime) -> 5 args
+		# setup(direction, speed, damage, shooter) -> 4 args
+		projectile.setup(direction, projectile_speed, projectile_damage, self, projectile_lifetime)
 		if debug_enabled:
 			print("[ENEMYSHOOTER] Projectile fired with setup() method")
 	else:
@@ -427,6 +431,8 @@ func _configure_projectile_legacy(projectile: Node, direction: Vector3) -> void:
 		projectile.damage = projectile_damage
 	if "projectile_owner" in projectile:
 		projectile.projectile_owner = self
+	if "life_time" in projectile:
+		projectile.life_time = projectile_lifetime
 	
 	if debug_enabled:
 		print("[ENEMYSHOOTER] Projectile fired with direct property assignment")

@@ -142,7 +142,7 @@ player = NodePath("../Player")
 spawn_count = 15
 
 [node name="Door_test" parent="." instance=ExtResource("9_ikfsv")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.7092717, 0.9267837, -0.035502434)
+transform = Transform3D(1.3339783, 0, 0, 0, 1.7957801, 0, 0, 0, 1, -7.6897383, 0.9267837, 38.446426)
 
 [node name="ItemSpawner" type="Node3D" parent="."]
 script = ExtResource("11_itemspawner")

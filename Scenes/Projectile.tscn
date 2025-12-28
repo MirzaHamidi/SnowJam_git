@@ -34,6 +34,7 @@ collision_bounce = 0.0
 size = Vector3(2.175, 1.985, -1.715)
 
 [node name="ProjectileBall" type="Area3D" groups=["projectile"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2114966, -4.7079015)
 script = ExtResource("1_projectile_ball")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]

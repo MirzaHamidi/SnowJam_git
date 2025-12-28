@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://ds1vp1ivqrbvn"]
+
+[ext_resource type="PackedScene" uid="uid://der1bh7tg31gc" path="res://Assets/dış.blend" id="1_qcync"]
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_qcync"]
+data = PackedVector3Array(-1.6005, 0, 0.39949998, 1.6005, 0, -2.8014, 1.6005, 0, 0.39949998, -1.6005, 0, 0.39949998, -1.6005, 0, -2.8014, 1.6005, 0, -2.8014)
+
+[node name="dış" instance=ExtResource("1_qcync")]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Plane" index="0"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Plane/StaticBody3D" index="0"]
+shape = SubResource("ConcavePolygonShape3D_qcync")

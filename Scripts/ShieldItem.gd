@@ -16,7 +16,7 @@ signal broken(shield: Node)
 # EXPORT PARAMETERS
 # ============================================
 @export_group("Block")
-@export var blocks_left: int = 1
+@export var blocks_left: int = 6
 @export var block_enabled: bool = true
 @export var deflect_force: float = 26.0
 
@@ -57,8 +57,8 @@ var is_held: bool = false
 var held_by: Node3D = null
 
 var original_gravity_scale: float = 1.0
-var original_linear_damp: float = 0.0
-var original_angular_damp: float = 0.0
+var original_linear_damp: float = 1.0
+var original_angular_damp: float = 1.0
 var original_collision_layer: int = 1
 var original_collision_mask: int = 1
 
@@ -78,7 +78,7 @@ func _ready() -> void:
 
 func _on_block_area_area_entered(area: Area3D) -> void:
 	"""BlockArea'ya Area3D girdiğinde."""
-	print("[Shield] area_entered:", area.name, " type=", area.get_class(), " groups=", area.get_groups(), " is_held=", is_held)
+	print("[Shield] area_entered:", area.name, " type=", area.get_class(), " groups=", area.get_groups(), " is_held=", is_held, " is_in_group(projectile)=", area.is_in_group("projectile"))
 	_try_deflect(area)
 
 
@@ -119,10 +119,15 @@ func _try_deflect(n: Node) -> void:
 func find_projectile(n: Node) -> Node:
 	"""ZORUNLU helper: Parent chain'de projectile bul."""
 	var cur := n
-	while cur:
+	var depth = 0
+	while cur and depth < 10:  # Max 10 level yukarı çık
+		print("[Shield] find_projectile depth=", depth, " node=", cur.name, " is_in_group(projectile)=", cur.is_in_group("projectile"), " has_method(deflect)=", cur.has_method("deflect"))
 		if cur.is_in_group("projectile") or cur.has_method("deflect"):
+			print("[Shield] Projectile found:", cur.name)
 			return cur
 		cur = cur.get_parent()
+		depth += 1
+	print("[Shield] Projectile NOT found in parent chain")
 	return null
 
 
@@ -249,12 +254,15 @@ func _setup_block_area() -> void:
 	print("[Shield] BlockArea found: type=", block_area.get_class(), " name=", block_area.name)
 	
 	# Area3D'ler birbirini algılamak için monitoring ve monitorable kullanır
+	# ÖNEMLİ: Area3D'ler birbirini algılamak için collision_layer/mask kullanmaz, sadece monitoring/monitorable kullanır
 	block_area.monitoring = true
 	block_area.monitorable = true  # BlockArea'nın kendisi algılanabilir olmalı
+	block_area.add_to_group("shield")  # Projectile tarafından algılanabilmesi için
 	
-	# TEST AMAÇLI: Collision layer/mask ALL
-	block_area.collision_layer = 4294967295
-	block_area.collision_mask = 4294967295
+	# BlockArea'nın collision_layer'ını 5 (Shield) yap
+	# Projectile bu layer'ı maskesine ekleyecek
+	block_area.collision_layer = (1 << 4) # Layer 5 (bit 4)
+	block_area.collision_mask = 0 # Mask önemli değil, projectile onu bulacak
 	
 	_ensure_block_area_collision_shape()
 	
@@ -309,6 +317,14 @@ func _force_connect_block_area_signals() -> void:
 	block_area.body_entered.connect(_on_block_body_entered)
 	
 	print("[Shield] BlockArea ready. layer=", block_area.collision_layer, " mask=", block_area.collision_mask, " monitoring=", block_area.monitoring, " monitorable=", block_area.monitorable)
+	print("[Shield] BlockArea signals connected: area_entered=", block_area.area_entered.is_connected(_on_block_area_area_entered), " body_entered=", block_area.body_entered.is_connected(_on_block_body_entered))
+	
+	# CollisionShape kontrolü
+	var block_collision = block_area.get_node_or_null("CollisionShape3D")
+	if block_collision:
+		print("[Shield] BlockArea CollisionShape3D: disabled=", block_collision.disabled, " shape=", block_collision.shape)
+	else:
+		print("[Shield] WARNING: BlockArea CollisionShape3D NOT FOUND!")
 
 
 func _connect_signals() -> void:
@@ -335,10 +351,10 @@ func _apply_held_physics() -> void:
 	collision_mask = 0  # Shield hiçbir şeyi algılamasın
 	
 	if block_area:
+		# Shield tutulurken BlockArea'nın monitoring ve monitorable'ını garanti et
 		block_area.monitoring = true
 		block_area.monitorable = true
-		if debug_enabled:
-			print("[SHIELD] Shield held - collision_layer=1 (for projectile detection), BlockArea monitoring enabled")
+		print("[Shield] Shield held - BlockArea monitoring=", block_area.monitoring, " monitorable=", block_area.monitorable)
 
 
 func _restore_dropped_physics() -> void:
@@ -365,16 +381,15 @@ func _restore_dropped_physics() -> void:
 # ============================================
 func _can_block() -> bool:
 	if not is_held:
-		if debug_enabled:
-			print("[SHIELD] Projectile hit BlockArea but shield is NOT held - ignoring")
+		print("[Shield] Cannot block - shield NOT held. is_held=", is_held)
 		return false
 	
 	if not block_enabled:
-		if debug_enabled:
-			print("[SHIELD] Block disabled - ignoring projectile")
+		print("[Shield] Cannot block - block disabled")
 		return false
 	
 	if blocks_left <= 0:
+		print("[Shield] Cannot block - no blocks left. blocks_left=", blocks_left)
 		return false
 	
 	return true

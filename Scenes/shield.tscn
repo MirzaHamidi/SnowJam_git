@@ -7,13 +7,11 @@
 size = Vector3(1.5507813, 1.1396484, 0.3)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_oux8c"]
-size = Vector3(2.5, 3.0, 0.5)
+size = Vector3(5.1533203, 4.4763184, 3.2859497)
 
 [node name="Shield" type="RigidBody3D" groups=["grabbable", "shield"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.13350183, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.13350183, -2.140029)
 mass = 0.124
-collision_layer = 1
-collision_mask = 1
 script = ExtResource("1_shield")
 
 [node name="GrabProxy" type="Area3D" parent="."]
@@ -25,12 +23,10 @@ shape = SubResource("BoxShape3D_grab_proxy")
 [node name="BlockArea" type="Area3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0013052109, 0.42150205, -0.0068100123)
 collision_layer = 0
-collision_mask = 4294967295
-monitoring = true
-monitorable = true
+collision_mask = 0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BlockArea"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.19503784)
 shape = SubResource("BoxShape3D_oux8c")
 
 [node name="Kalkan" parent="." instance=ExtResource("2_kalkan")]

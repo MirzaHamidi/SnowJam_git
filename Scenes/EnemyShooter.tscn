@@ -30,10 +30,12 @@ size = Vector3(2.175, 1.985, -1.715)
 
 [node name="EnemyShooter" type="CharacterBody3D"]
 script = ExtResource("1_enemy_shooter")
-acceleration = 0.6
+acceleration = 7.625
 projectile_scene = ExtResource("3_projectile")
-projectile_speed = 18.0
-projectile_damage = 20
+fire_rate = 3.0
+projectile_speed = 4.0
+projectile_damage = 15
+projectile_lifetime = 3.6
 max_range = 40.0
 debug_enabled = true
 

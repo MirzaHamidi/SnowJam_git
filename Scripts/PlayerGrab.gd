@@ -362,6 +362,10 @@ func _update_shield_transform(_delta: float) -> void:
 func _calculate_shield_yaw(current: Transform3D, target: Transform3D) -> float:
 	var camera_forward = -camera.global_transform.basis.z
 	var target_yaw = atan2(camera_forward.x, camera_forward.z)
+	
+	# Shield ters tutuluyorsa 180 derece (PI) ekle
+	target_yaw += PI
+	
 	var current_yaw = atan2(current.basis.z.x, current.basis.z.z)
 	return lerp_angle(current_yaw, target_yaw, follow_lerp)
 

@@ -572,8 +572,12 @@ func _fade_in() -> void:
 # PRIVATE HELPERS - BUTTON ACTIONS
 # ============================================
 func _on_play_action() -> void:
-	# GameScene'e geç (cache varsa direkt, yoksa loading screen ile)
-	LoadingManager.change_to_game()
+	# Ara Sahneye geç (Background Loading'i tetikle)
+	# Ara sahne başladığında, LoadingManager arka planda game_scene'i yüklemeye başlayacak
+	get_tree().change_scene_to_file("res://Scenes/arasahne.tscn")
+	
+	# Eğer henüz başlamadıysa arka planda yüklemeyi başlat (zaten _ready'de preload çağrılıyor ama garanti olsun)
+	LoadingManager.preload_game_scene()
 
 
 func _on_settings_action() -> void:
