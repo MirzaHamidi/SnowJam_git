@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3 uid="uid://bcsbjuwuasdtk"]
+
+[ext_resource type="PackedScene" uid="uid://3u6ub8115evn" path="res://Scenes/hip_hop.tscn" id="1_72qof"]
+[ext_resource type="Script" uid="uid://btr3jqt0746wk" path="res://Scripts/EnemyKilicli.gd" id="1_wiv16"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_72qof"]
+
+[node name="Enemykilic" type="CharacterBody3D"]
+script = ExtResource("1_wiv16")
+move_speed = 0.92
+dash_speed = 18.81
+dash_chance = 0.685
+max_health = 12
+attack_range = 20.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1.335, 0, 0, 0, 1.335, 0, 0, 0, 1.335, 0, 1.3390197, 0)
+shape = SubResource("CapsuleShape3D_72qof")
+
+[node name="Hip-Hop" parent="." instance=ExtResource("1_72qof")]
+transform = Transform3D(-1.335, 0, -2.015794e-07, 0, 1.335, 0, 2.015794e-07, 0, -1.335, 0, 0.026759207, 0)
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0862694, 0)
+light_color = Color(0, 0.24313726, 0.96862745, 1)
+light_energy = 29.555
+light_specular = 16.0
+omni_range = 1.9320887

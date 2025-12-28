@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d3cvyq1i2kwnn"
-path.s3tc="res://.godot/imported/Enemy_04(Armor)_DefaultMaterial_Height.png-f6c313d70a2683fc2ef3b88d30e173be.s3tc.ctex"
+uid="uid://kdlodw4xbr7j"
+path.s3tc="res://.godot/imported/Enemy_04(Armor)_DefaultMaterial_Roughness.png-ce08b74f03d820531bffce4279ec47a3.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://Assets/Enemy/Silver Armor/Enemy_04(Armor)_DefaultMaterial_Height.png"
-dest_files=["res://.godot/imported/Enemy_04(Armor)_DefaultMaterial_Height.png-f6c313d70a2683fc2ef3b88d30e173be.s3tc.ctex"]
+source_file="res://Assets/Enemy/Bronze Armor/Enemy_04(Armor)_DefaultMaterial_Roughness.png"
+dest_files=["res://.godot/imported/Enemy_04(Armor)_DefaultMaterial_Roughness.png-ce08b74f03d820531bffce4279ec47a3.s3tc.ctex"]
 
 [params]
 

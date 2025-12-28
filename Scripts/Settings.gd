@@ -77,10 +77,11 @@ func unpause_game() -> void:
 	if not is_paused:
 		return
 	
+	# Önce pause'ı kapat (scene değişimi için)
 	is_paused = false
 	get_tree().paused = false
 	
-	# UI popup'ını kapat (unpause'dan sonra)
+	# UI popup'ını kapat
 	_close_ui_popup()
 	
 	# Mouse mode'u geri yükle (sadece game scene'deyken captured)
@@ -148,6 +149,13 @@ func _close_ui_popup() -> void:
 	ui_scene_instance = null
 	
 	print("[Settings] UI popup closed")
+
+
+func close_ui_popup() -> void:
+	"""
+	Public API: UI popup'ını kapat (dışarıdan çağrılabilir).
+	"""
+	_close_ui_popup()
 
 
 func _set_process_mode_recursive(node: Node, mode: Node.ProcessMode) -> void:

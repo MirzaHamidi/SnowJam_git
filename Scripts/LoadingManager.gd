@@ -21,6 +21,11 @@ var loading_screen_ref: Control = null
 var last_pct: int = 1
 var is_loading: bool = false
 
+# Preload cache
+var cached_game_packed: PackedScene = null
+var cached_game_path: String = "res://Scenes/game_scene.tscn"
+var preload_in_progress: bool = false
+
 # ============================================
 # GODOT CALLBACKS
 # ============================================
@@ -29,8 +34,14 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	# Preload kontrolü (eğer preload devam ediyorsa)
+	if preload_in_progress:
+		_check_preload_status()
+	
+	# Normal loading kontrolü
 	if not is_loading or current_path.is_empty():
-		set_process(false)
+		if not preload_in_progress:
+			set_process(false)
 		return
 	
 	# Poll loading status
@@ -60,6 +71,58 @@ func load_game_scene() -> void:
 	GameScene'i threaded olarak yükle.
 	"""
 	change_scene_with_loading("res://Scenes/game_scene.tscn")
+
+
+func change_to_game() -> void:
+	"""
+	GameScene'e geç (cache varsa direkt, yoksa loading screen ile).
+	"""
+	# Eğer cache'de varsa direkt geç
+	if cached_game_packed:
+		get_tree().paused = false  # Güvenlik kontrolü
+		get_tree().change_scene_to_packed(cached_game_packed)
+		print("[LoadingManager] GameScene loaded from cache - instant transition")
+		return
+	
+	# Cache yoksa normal loading screen ile yükle
+	change_scene_with_loading(cached_game_path)
+	print("[LoadingManager] GameScene not cached - using loading screen")
+
+
+func preload_game_scene() -> void:
+	"""
+	GameScene'i arka planda preload et (cache için).
+	"""
+	# Eğer zaten cache'de varsa, preload yapma
+	if cached_game_packed:
+		print("[LoadingManager] GameScene already cached, skipping preload")
+		return
+	
+	# Eğer preload zaten devam ediyorsa, tekrar başlatma
+	if preload_in_progress:
+		print("[LoadingManager] Preload already in progress")
+		return
+	
+	# Preload başlat
+	preload_in_progress = true
+	set_process(true)
+	
+	var error = ResourceLoader.load_threaded_request(cached_game_path)
+	if error != OK:
+		push_error("LoadingManager: Failed to start preload! Error: ", error)
+		preload_in_progress = false
+		return
+	
+	print("[LoadingManager] Preload started for GameScene")
+
+
+func clear_cache() -> void:
+	"""
+	Cache'i temizle (opsiyonel).
+	"""
+	cached_game_packed = null
+	preload_in_progress = false
+	print("[LoadingManager] Cache cleared")
 
 
 func change_scene_with_loading(path: String) -> void:
@@ -181,4 +244,32 @@ func _on_load_failed() -> void:
 	
 	current_path = ""
 	last_pct = 1
+
+
+func _check_preload_status() -> void:
+	"""
+	Preload durumunu kontrol et ve cache'e kaydet.
+	"""
+	if not preload_in_progress:
+		return
+	
+	var progress: Array = []
+	var status = ResourceLoader.load_threaded_get_status(cached_game_path, progress)
+	
+	if status == ResourceLoader.THREAD_LOAD_LOADED:
+		# Preload tamamlandı, cache'e kaydet
+		cached_game_packed = ResourceLoader.load_threaded_get(cached_game_path)
+		preload_in_progress = false
+		
+		if cached_game_packed:
+			print("[LoadingManager] GameScene preloaded and cached!")
+		else:
+			push_error("LoadingManager: Preload completed but PackedScene is null!")
+			preload_in_progress = false
+	elif status == ResourceLoader.THREAD_LOAD_FAILED:
+		push_error("LoadingManager: Preload failed for GameScene")
+		preload_in_progress = false
+	elif status == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+		push_error("LoadingManager: Preload invalid resource for GameScene")
+		preload_in_progress = false
 

@@ -1,5 +1,8 @@
 extends Node
 
+## UI Settings - Settings panel controller
+## Pause durumunda da çalışması için process_mode ALWAYS
+
 const RESOLUTIONS := [
 	Vector2i(1920, 1080),
 	Vector2i(1600, 900),
@@ -8,6 +11,8 @@ const RESOLUTIONS := [
 
 
 func _ready() -> void:
+	# Pause durumunda da çalışması için
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	# Fill resolution options
 	var option_button: OptionButton = get_node("../Panel/VBox/ResolutionHBox/ResolutionOptions")
 	option_button.clear()
@@ -102,4 +107,32 @@ func _on_back_pressed() -> void:
 
 
 func _on_main_menu_pressed() -> void:
+	# Eğer Settings autoload varsa ve pause durumundaysa, önce pause'ı kapat
+	if has_node("/root/Settings"):
+		var settings = get_node("/root/Settings")
+		if settings.is_game_paused():
+			# Pause'ı kapat (UI popup'ı kapanır)
+			# unpause_game() çağrılmayacak çünkü o mouse mode'u game scene için ayarlıyor
+			# Sadece pause flag'ini ve UI'yi kapat
+			settings.close_ui_popup()
+			settings.is_paused = false
+			
+			# Pause'ı kapat (scene değişimi için gerekli)
+			get_tree().paused = false
+			
+			# Mouse mode'u visible yap (main menu için)
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	
+	# Güvenlik: Pause'ı kesinlikle kapat
+	get_tree().paused = false
+	
+	# Main menu'ye scene değişimi (deferred call ile pause durumundan bağımsız)
+	call_deferred("_change_to_main_menu")
+
+
+func _change_to_main_menu() -> void:
+	"""
+	Main menu'ye scene değişimi (deferred call ile).
+	"""
+	get_tree().paused = false  # Güvenlik kontrolü
 	get_tree().change_scene_to_file("res://Scenes/main_menu.tscn")

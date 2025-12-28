@@ -67,6 +67,9 @@ func _ready() -> void:
 	_setup_buttons()
 	_setup_music_loop($MainMenu_Music)
 	
+	# GameScene'i arka planda preload et
+	LoadingManager.preload_game_scene()
+	
 	# Fade in (isteğe bağlı - main menu açılırken)
 	_fade_in()
 
@@ -569,8 +572,8 @@ func _fade_in() -> void:
 # PRIVATE HELPERS - BUTTON ACTIONS
 # ============================================
 func _on_play_action() -> void:
-	# LoadingManager autoload singleton'ını kullan
-	LoadingManager.change_scene_with_loading("res://Scenes/game_scene.tscn")
+	# GameScene'e geç (cache varsa direkt, yoksa loading screen ile)
+	LoadingManager.change_to_game()
 
 
 func _on_settings_action() -> void:

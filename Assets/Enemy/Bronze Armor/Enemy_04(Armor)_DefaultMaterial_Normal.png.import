@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d3cvyq1i2kwnn"
-path.s3tc="res://.godot/imported/Enemy_04(Armor)_DefaultMaterial_Height.png-f6c313d70a2683fc2ef3b88d30e173be.s3tc.ctex"
+uid="uid://ce8pkjnweufbv"
+path.s3tc="res://.godot/imported/Enemy_04(Armor)_DefaultMaterial_Normal.png-72871f9fe73dc2f3422c65d683255e79.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://Assets/Enemy/Silver Armor/Enemy_04(Armor)_DefaultMaterial_Height.png"
-dest_files=["res://.godot/imported/Enemy_04(Armor)_DefaultMaterial_Height.png-f6c313d70a2683fc2ef3b88d30e173be.s3tc.ctex"]
+source_file="res://Assets/Enemy/Bronze Armor/Enemy_04(Armor)_DefaultMaterial_Normal.png"
+dest_files=["res://.godot/imported/Enemy_04(Armor)_DefaultMaterial_Normal.png-72871f9fe73dc2f3422c65d683255e79.s3tc.ctex"]
 
 [params]
 
@@ -22,12 +22,12 @@ compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1
-roughness/mode=0
-roughness/src_normal=""
+roughness/mode=1
+roughness/src_normal="res://Assets/Enemy/Bronze Armor/Enemy_04(Armor)_DefaultMaterial_Normal.png"
 process/channel_remap/red=0
 process/channel_remap/green=1
 process/channel_remap/blue=2
