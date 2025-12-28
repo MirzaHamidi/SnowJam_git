@@ -1,8 +1,27 @@
-[gd_scene load_steps=2 format=3 uid="uid://ch7fj1exmeqpt"]
+[gd_scene load_steps=7 format=3 uid="uid://ch7fj1exmeqpt"]
 
+[ext_resource type="Texture2D" uid="uid://b6docykfh2ovc" path="res://Assets/Background/settings arka.png" id="1_2ku32"]
 [ext_resource type="Script" uid="uid://mo3srslmgx5c" path="res://Scripts/ui_settings.gd" id="1_4q3si"]
+[ext_resource type="Texture2D" uid="uid://ceylays6vh0i2" path="res://Assets/Background/settings text.png" id="2_t44be"]
+[ext_resource type="Texture2D" uid="uid://de75xbpjcwbq6" path="res://Assets/Background/resolution text.png" id="2_yau4v"]
+[ext_resource type="Texture2D" uid="uid://fnq5ck32p42t" path="res://Assets/Background/volume text.png" id="4_4gq1a"]
+[ext_resource type="Texture2D" uid="uid://dk3wifgmixhmn" path="res://Assets/Background/window text.png" id="5_4gq1a"]
 
 [node name="UiRoot" type="CanvasLayer"]
+
+[node name="SettingsArka" type="Sprite2D" parent="."]
+position = Vector2(916, 986)
+scale = Vector2(2.0013802, 2.0013802)
+texture = ExtResource("1_2ku32")
+
+[node name="SettingsText" type="Sprite2D" parent="."]
+position = Vector2(954, 386)
+texture = ExtResource("2_t44be")
+
+[node name="ResolutionText" type="Sprite2D" parent="."]
+position = Vector2(532.00006, 470)
+scale = Vector2(0.820218, 0.820218)
+texture = ExtResource("2_yau4v")
 
 [node name="Panel" type="Panel" parent="."]
 self_modulate = Color(2.9083786, 2.9083786, 2.9083786, 0)
@@ -13,29 +32,23 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 640.0
-offset_top = 260.0
-offset_right = -640.0
-offset_bottom = -260.0
+offset_left = 685.0
+offset_top = 269.0
+offset_right = -595.0
+offset_bottom = -251.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 20
 alignment = 1
-
-[node name="Title" type="Label" parent="Panel/VBox"]
-layout_mode = 2
-text = "Settings"
-horizontal_alignment = 1
 
 [node name="ResolutionHBox" type="HBoxContainer" parent="Panel/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 20
 alignment = 1
-
-[node name="ResolutionLabel" type="Label" parent="Panel/VBox/ResolutionHBox"]
-layout_mode = 2
-text = "Resolution"
 
 [node name="ResolutionOptions" type="OptionButton" parent="Panel/VBox/ResolutionHBox"]
 layout_mode = 2
@@ -46,10 +59,6 @@ layout_mode = 2
 theme_override_constants/separation = 20
 alignment = 1
 
-[node name="WindowModeLabel" type="Label" parent="Panel/VBox/WindowModeHBox"]
-layout_mode = 2
-text = "Window Mode"
-
 [node name="WindowModeOptions" type="OptionButton" parent="Panel/VBox/WindowModeHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -59,16 +68,16 @@ layout_mode = 2
 theme_override_constants/separation = 20
 alignment = 1
 
-[node name="VolumeLabel" type="Label" parent="Panel/VBox/VolumeHBox"]
-layout_mode = 2
-text = "Master Volume"
-
 [node name="VolumeSlider" type="HSlider" parent="Panel/VBox/VolumeHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 max_value = 1.0
 step = 0.01
 value = 1.0
+
+[node name="VolumeText" type="Sprite2D" parent="Panel/VBox/VolumeHBox"]
+position = Vector2(-146, 20)
+texture = ExtResource("4_4gq1a")
 
 [node name="ButtonsHBox" type="HBoxContainer" parent="Panel/VBox"]
 layout_mode = 2
@@ -89,3 +98,7 @@ text = "Main Menu"
 
 [node name="SettingsController" type="Node" parent="."]
 script = ExtResource("1_4q3si")
+
+[node name="WindowText" type="Sprite2D" parent="."]
+position = Vector2(533, 521)
+texture = ExtResource("5_4gq1a")

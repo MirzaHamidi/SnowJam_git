@@ -1,12 +1,14 @@
-[gd_scene load_steps=5 format=3 uid="uid://4kur8mdstp8t"]
+[gd_scene load_steps=6 format=3 uid="uid://4kur8mdstp8t"]
 
 [ext_resource type="Script" path="res://Scripts/cubetest.gd" id="1_cubetest"]
+[ext_resource type="PackedScene" uid="uid://b5mol8am8ey1a" path="res://Assets/Stone.blend" id="2_prjgj"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_e6m6s"]
 friction = 0.5
 bounce = 0.2
 
-[sub_resource type="BoxMesh" id="BoxMesh_tiljo"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_area"]
+size = Vector3(1.2, 1.2875, 1.2)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_collision"]
 size = Vector3(1.2, 1.2875, 1.2)
@@ -20,16 +22,18 @@ linear_damp = 0.1
 angular_damp = 0.1
 script = ExtResource("1_cubetest")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.053299785, 0)
-mesh = SubResource("BoxMesh_tiljo")
-skeleton = NodePath("../..")
-
 [node name="CollisionArea" type="Area3D" parent="RigidBody3D"]
 visible = false
 collision_layer = 0
 monitorable = false
 
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D/CollisionArea"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.043749988, 0)
+shape = SubResource("BoxShape3D_area")
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.043749988, 0)
 shape = SubResource("BoxShape3D_collision")
+
+[node name="Stone2" parent="RigidBody3D" instance=ExtResource("2_prjgj")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.005579293, -0.14609605, -0.13296199)

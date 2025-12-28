@@ -46,7 +46,7 @@ const WORLD_LAYER_MASK: int = 1
 # ============================================
 # NODE REFERENCES
 # ============================================
-var block_area: Area3D = null
+@onready var block_area: Area3D = $BlockArea
 var collision_shape: CollisionShape3D = null
 var grab_proxy: Area3D = null
 
@@ -66,27 +66,66 @@ var original_collision_mask: int = 1
 # GODOT CALLBACKS
 # ============================================
 func _ready() -> void:
+	# DEBUG: Shield ready
+	print("[Shield] ready type=", get_class(), " root=", name)
+	
 	_add_to_groups()
 	_save_original_physics()
 	_setup_nodes()
+	_force_connect_block_area_signals()
 	_connect_signals()
 
 
 func _on_block_area_area_entered(area: Area3D) -> void:
+	"""BlockArea'ya Area3D girdiğinde."""
+	print("[Shield] area_entered:", area.name, " type=", area.get_class(), " groups=", area.get_groups(), " is_held=", is_held)
+	_try_deflect(area)
+
+
+func _on_block_body_entered(body: Node) -> void:
+	"""BlockArea'ya RigidBody3D/CharacterBody3D girdiğinde."""
+	print("[Shield] body_entered:", body.name, " type=", body.get_class(), " groups=", body.get_groups(), " is_held=", is_held)
+	_try_deflect(body)
+
+
+func _try_deflect(n: Node) -> void:
+	"""Projectile'ı bul ve deflect et (FAIL-SAFE)."""
 	if not _can_block():
+		print("[Shield] Cannot block - _can_block() returned false")
 		return
 	
-	if not area.is_in_group("projectile"):
-		if debug_enabled:
-			print("[SHIELD] Area entered BlockArea but not a projectile: ", area.name)
+	# FAIL-SAFE: Projectile'ı parent chain'de bul
+	var projectile = find_projectile(n)
+	
+	if projectile == null:
+		print("[Shield] Not a projectile -> ignore. Node: ", n.name, " class: ", n.get_class())
 		return
 	
-	if not area.has_method("deflect"):
-		if debug_enabled:
-			print("[SHIELD] ERROR: Projectile does not have deflect() method!")
+	if not projectile.has_method("deflect"):
+		print("[Shield] ERROR: Projectile found but no deflect() method! Node: ", projectile.name)
 		return
 	
-	_deflect_projectile(area)
+	# Deflect direction'ı al (aim assist ile - MEVCUT FONKSİYON KORUNUYOR)
+	var dir = get_deflect_direction_with_assist()
+	print("[Shield] DEFLECT TRIGGERED ->", projectile.name, " dir=", dir, " force=", deflect_force)
+	
+	# Deflect çağır
+	projectile.call("deflect", dir, deflect_force, self)
+	
+	# Block tüket
+	consume_block()
+
+
+func find_projectile(n: Node) -> Node:
+	"""ZORUNLU helper: Parent chain'de projectile bul."""
+	var cur := n
+	while cur:
+		if cur.is_in_group("projectile") or cur.has_method("deflect"):
+			return cur
+		cur = cur.get_parent()
+	return null
+
+
 
 
 func _on_body_entered(body: Node) -> void:
@@ -206,10 +245,27 @@ func _setup_block_area() -> void:
 		push_error("[SHIELD] BlockArea NOT FOUND! Deflect will not work!")
 		return
 	
+	# DEBUG: BlockArea tipi
+	print("[Shield] BlockArea found: type=", block_area.get_class(), " name=", block_area.name)
+	
+	# Area3D'ler birbirini algılamak için monitoring ve monitorable kullanır
 	block_area.monitoring = true
-	block_area.monitorable = true
+	block_area.monitorable = true  # BlockArea'nın kendisi algılanabilir olmalı
+	
+	# TEST AMAÇLI: Collision layer/mask ALL
+	block_area.collision_layer = 4294967295
+	block_area.collision_mask = 4294967295
 	
 	_ensure_block_area_collision_shape()
+	
+	# DEBUG: CollisionShape kontrolü
+	var block_collision = block_area.get_node_or_null("CollisionShape3D")
+	if block_collision:
+		print("[Shield] BlockArea CollisionShape3D found: disabled=", block_collision.disabled)
+	else:
+		print("[Shield] WARNING: BlockArea CollisionShape3D NOT FOUND!")
+	
+	print("[Shield] BlockArea configured: monitoring=", block_area.monitoring, " monitorable=", block_area.monitorable, " layer=", block_area.collision_layer, " mask=", block_area.collision_mask)
 
 
 func _ensure_block_area_collision_shape() -> void:
@@ -233,12 +289,29 @@ func _ensure_block_area_collision_shape() -> void:
 		print("[SHIELD] Created CollisionShape3D for BlockArea")
 
 
-func _connect_signals() -> void:
-	if block_area:
-		block_area.area_entered.connect(_on_block_area_area_entered)
-		if debug_enabled:
-			print("[SHIELD] BlockArea found and area_entered signal connected")
+func _force_connect_block_area_signals() -> void:
+	"""BlockArea sinyallerini ZORLA bağla + debug."""
+	if not block_area:
+		push_error("[SHIELD] BlockArea NOT FOUND in _force_connect_block_area_signals!")
+		return
 	
+	# BlockArea ayarlarını garanti et
+	block_area.monitoring = true
+	block_area.monitorable = true
+	
+	# Sinyalleri zorla bağla (eğer zaten bağlıysa disconnect et)
+	if block_area.area_entered.is_connected(_on_block_area_area_entered):
+		block_area.area_entered.disconnect(_on_block_area_area_entered)
+	if block_area.body_entered.is_connected(_on_block_body_entered):
+		block_area.body_entered.disconnect(_on_block_body_entered)
+	
+	block_area.area_entered.connect(_on_block_area_area_entered)
+	block_area.body_entered.connect(_on_block_body_entered)
+	
+	print("[Shield] BlockArea ready. layer=", block_area.collision_layer, " mask=", block_area.collision_mask, " monitoring=", block_area.monitoring, " monitorable=", block_area.monitorable)
+
+
+func _connect_signals() -> void:
 	body_entered.connect(_on_body_entered)
 
 # ============================================
@@ -256,14 +329,16 @@ func _apply_held_physics() -> void:
 	if collision_shape:
 		collision_shape.disabled = true
 	
-	collision_layer = 0
-	collision_mask = 0
+	# Shield tutulurken bile collision_layer = 1'de kalmalı ki ProjectileBall onu algılayabilsin
+	# collision_mask = 0 yapıyoruz çünkü shield hiçbir şeyi algılamasın
+	collision_layer = 1  # ProjectileBall'ın algılayabilmesi için
+	collision_mask = 0  # Shield hiçbir şeyi algılamasın
 	
 	if block_area:
 		block_area.monitoring = true
 		block_area.monitorable = true
 		if debug_enabled:
-			print("[SHIELD] Shield held - BlockArea monitoring enabled")
+			print("[SHIELD] Shield held - collision_layer=1 (for projectile detection), BlockArea monitoring enabled")
 
 
 func _restore_dropped_physics() -> void:
@@ -305,15 +380,6 @@ func _can_block() -> bool:
 	return true
 
 
-func _deflect_projectile(projectile: Area3D) -> void:
-	var deflect_dir = get_deflect_direction_with_assist()
-	
-	if debug_enabled:
-		print("[SHIELD] Projectile blocked!")
-		print("[SHIELD] Deflect direction: ", deflect_dir)
-	
-	projectile.deflect(deflect_dir, deflect_force, self)
-	consume_block()
 
 
 func _check_block(target: Node) -> void:

@@ -1,10 +1,6 @@
 extends Area3D
 
 ## ProjectileBall - EnemyShooter'dan fırlatılan kırmızı top (deflect edilebilir, sarıya döner)
-
-# KESİN: Signal'lar (sadece bildirim, gameplay değiştirmez)
-signal deflected
-signal destroyed
 ## 
 ## REFACTOR NOTES:
 ## 1) Debug log'lar debug_enabled flag ile kontrol edilir
@@ -102,7 +98,7 @@ func _physics_process(delta: float) -> void:
 	if life_timer <= 0.0:
 		if debug_enabled:
 			print("[PROJECTILE] Life time expired, destroying")
-		_destroy_projectile()
+		queue_free()
 		return
 	
 	# Projectile hareketi (gravity'den etkilenmez - Area3D olduğu için)
@@ -112,7 +108,7 @@ func _physics_process(delta: float) -> void:
 	if _is_out_of_bounds():
 		if debug_enabled:
 			print("[PROJECTILE] Out of bounds (x=", global_position.x, " z=", global_position.z, " y=", global_position.y, "), destroying")
-		_destroy_projectile()
+		queue_free()
 		return
 
 # ============================================
@@ -155,9 +151,6 @@ func deflect(dir: Vector3, force: float, source: Node) -> void:
 	
 	apply_color(YELLOW_COLOR)
 	_setup_collision_mask(true)
-	
-	# KESİN: Deflect signal'ı emit et
-	deflected.emit()
 	
 	print("[Projectile] deflected OK -> yellow, enemy-collision ON, dmg x2")
 	print("[Projectile] Deflected! new_velocity=", velocity, " direction=", dir.normalized(), " force=", force)
@@ -317,12 +310,12 @@ func _hit_player(target: Node) -> void:
 	if is_deflected:
 		if debug_enabled:
 			print("[PROJECTILE] Deflected projectile hit player, ignoring damage")
-		_destroy_projectile()
+		queue_free()
 		return
 	
 	var player = _find_player_root(target)
 	if not player:
-		_destroy_projectile()
+		queue_free()
 		return
 	
 	if player.has_method("take_damage"):
@@ -333,7 +326,7 @@ func _hit_player(target: Node) -> void:
 		if debug_enabled:
 			print("[PROJECTILE] Hit player but no take_damage method found!")
 	
-	_destroy_projectile()
+	queue_free()
 
 
 func _find_player_root(target: Node) -> Node:
@@ -352,26 +345,26 @@ func _find_player_root(target: Node) -> Node:
 func _hit_enemy(target: Node) -> void:
 	if not is_deflected:
 		print("[PROJECTILE] ERROR: Non-deflected projectile hit enemy (should not happen)!")
-		_destroy_projectile()
+		queue_free()
 		return
 	
 	var enemy = find_enemy_root(target)
 	if not enemy:
 		print("[PROJECTILE] Hit enemy collider but could not find enemy root! Target: ", target.name, " class: ", target.get_class())
-		_destroy_projectile()
+		queue_free()
 		return
 	
 	# Deflect edilmiş projectile kendi sahibini (orijinal shooter) vurmamalı
 	if original_shooter and enemy == original_shooter:
 		print("[PROJECTILE] Deflected projectile hit its original owner (", enemy.name, "), ignoring to prevent self-damage!")
-		_destroy_projectile()
+		queue_free()
 		return
 	
 	var final_damage = base_damage * damage_multiplier
 	print("[PROJECTILE] Deflected projectile hitting enemy: ", enemy.name, " damage=", final_damage, " (base=", base_damage, " x multiplier=", damage_multiplier, ")")
 	_apply_damage_to_enemy(enemy, final_damage)
 	_apply_knockback_to_enemy(enemy)
-	_destroy_projectile()
+	queue_free()
 
 
 func find_enemy_root(node: Node) -> Node:
@@ -416,7 +409,7 @@ func _apply_knockback_to_enemy(enemy: Node) -> void:
 func _hit_world() -> void:
 	if debug_enabled:
 		print("[PROJECTILE] Hit world, destroyed!")
-	_destroy_projectile()
+	queue_free()
 
 # ============================================
 # PRIVATE HELPERS - UTILITY
@@ -425,17 +418,3 @@ func _is_out_of_bounds() -> bool:
 	# MAP_BOUNDS çok küçük olabilir, daha büyük bir değer kullan
 	var bounds = 100.0  # Daha büyük bir sınır
 	return abs(global_position.x) > bounds or abs(global_position.z) > bounds or abs(global_position.y) > 50.0
-
-
-func _destroy_projectile() -> void:
-	"""KESİN: Projectile'ı yok et (her yok oluş yolunda çağrılır)."""
-	# Signal emit et (shooter'a bildir)
-	destroyed.emit()
-	queue_free()
-
-
-func _destroy_projectile() -> void:
-	"""KESİN: Projectile'ı yok et (her yok oluş yolunda çağrılır)."""
-	# Signal emit et (shooter'a bildir)
-	destroyed.emit()
-	queue_free()

@@ -70,7 +70,6 @@ var position_update_threshold: float = 1.0
 var use_direct_follow: bool = false
 var knockback_vel: Vector3 = Vector3.ZERO
 var fire_cooldown: float = 0.0
-var current_projectile: Node = null  # KESİN: Aktif projectile tracking
 
 # ============================================
 # GODOT CALLBACKS
@@ -344,13 +343,6 @@ func _try_shoot(delta: float) -> void:
 	if not _ensure_player_valid(delta):
 		return
 	
-	# KESİN: Aktif projectile kontrolü
-	if is_instance_valid(current_projectile):
-		print("[Shooter] try_shoot cur_valid=true -> skip (projectile still active)")
-		return
-	else:
-		current_projectile = null  # Temizle
-	
 	fire_cooldown -= delta
 	if fire_cooldown > 0.0:
 		return
@@ -363,8 +355,6 @@ func _try_shoot(delta: float) -> void:
 
 
 func _shoot() -> void:
-	print("[Shooter] try_shoot cur_valid=", is_instance_valid(current_projectile), " cooldown=", fire_cooldown)
-	
 	if not _can_shoot():
 		return
 	
@@ -372,17 +362,6 @@ func _shoot() -> void:
 	if not projectile_instance:
 		push_error("EnemyShooter - Failed to instantiate projectile!")
 		return
-	
-	# KESİN: Projectile'ı register et
-	current_projectile = projectile_instance
-	print("[Shooter] register projectile id=", projectile_instance.get_instance_id())
-	
-	# KESİN: Signal'ları bağla
-	projectile_instance.tree_exited.connect(_on_projectile_released)
-	if projectile_instance.has_signal("deflected"):
-		projectile_instance.deflected.connect(_on_projectile_released)
-	if projectile_instance.has_signal("destroyed"):
-		projectile_instance.destroyed.connect(_on_projectile_released)
 	
 	# Instantiate edilen node'un class'ını print et
 	print("[Shooter] spawned projectile:", projectile_instance.name, " type=", projectile_instance.get_class(), " groups=", projectile_instance.get_groups())

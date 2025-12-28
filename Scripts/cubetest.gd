@@ -26,6 +26,11 @@ func _ready() -> void:
 	var area = get_node_or_null("CollisionArea")
 	if area:
 		area.body_entered.connect(_on_enemy_entered)
+		# Area3D'nin enemy'leri algılayabilmesi için collision_layer ayarla
+		area.collision_layer = 0  # Area3D hiçbir layer'da değil (sadece algılama için)
+		area.collision_mask = 1  # Layer 1'deki objeleri algıla (enemy'ler bu layer'da)
+		area.monitoring = true
+		area.monitorable = false
 	
 	# RigidBody3D ayarlarını optimize et (daha doğal hareket için)
 	# Not: Bu ayarlar scene dosyasında da tanımlı, burada sadece kontrol ediyoruz
@@ -149,47 +154,54 @@ func _on_enemy_entered(body: Node3D) -> void:
 	if horizontal_speed < speed_threshold:
 		return  # Yatay düzlemde yeterince hızlı değil
 	
-	# Enemy'yi bul (sadece Enemy script'ine sahip CharacterBody3D)
-	var enemy_char: CharacterBody3D = null
+	# Enemy'yi bul (tüm enemy tipleri için - "enemy" grubu veya take_damage metodu)
+	var enemy_char: Node = null
 	
 	# Önce body'yi kontrol et
-	if body is CharacterBody3D:
-		var body_char = body as CharacterBody3D
-		# Enemy script'ine sahip mi kontrol et (script path'ine bakarak)
-		if body_char.get_script() and body_char.get_script().resource_path.ends_with("Enemy.gd"):
-			enemy_char = body_char
+	if body.is_in_group("enemy"):
+		enemy_char = body
+	elif body.has_method("take_damage"):
+		# take_damage metoduna sahipse enemy olabilir (player değilse)
+		if not body.is_in_group("player"):
+			enemy_char = body
 	else:
 		# Parent'ı kontrol et
 		var parent = body.get_parent()
-		if parent is CharacterBody3D:
-			var parent_char = parent as CharacterBody3D
-			# Enemy script'ine sahip mi kontrol et
-			if parent_char.get_script() and parent_char.get_script().resource_path.ends_with("Enemy.gd"):
-				enemy_char = parent_char
+		if parent:
+			if parent.is_in_group("enemy"):
+				enemy_char = parent
+			elif parent.has_method("take_damage") and not parent.is_in_group("player"):
+				enemy_char = parent
 	
 	# Enemy bulundu mu?
 	if not enemy_char:
 		return
 	
+	# CharacterBody3D olmalı (enemy'ler genelde CharacterBody3D)
+	if not enemy_char is CharacterBody3D:
+		return
+	
+	var enemy = enemy_char as CharacterBody3D
+	
 	# Aynı enemy'ye tekrar çarpmayı önle
-	if enemy_char in hit_enemies:
+	if enemy in hit_enemies:
 		return
 	
 	# Enemy aktif mi kontrol et (spawn animasyonu bitmiş mi?)
-	if enemy_char.has_method("get") and enemy_char.get("is_active") == false:
+	if "is_active" in enemy and enemy.is_active == false:
 		return  # Enemy henüz spawn olmadı, damage verme
 	
 	# Enemy ölü mü kontrol et
-	if enemy_char.has_method("get") and enemy_char.get("is_dead") == true:
+	if "is_dead" in enemy and enemy.is_dead == true:
 		return  # Enemy zaten ölü
 	
 	# Fırlatma yönü (küpten enemy'ye)
-	var push_direction = (enemy_char.global_position - global_position).normalized()
+	var push_direction = (enemy.global_position - global_position).normalized()
 	
 	# Enemy'yi öldür (yeterince büyük hasar ver)
 	var damage_amount = 999
-	enemy_char.take_damage(damage_amount, push_direction)
-	hit_enemies.append(enemy_char)
+	enemy.take_damage(damage_amount, push_direction)
+	hit_enemies.append(enemy)
 	print("Cubetest hit enemy! Enemy died!")
 	
 	# Küpün hızını biraz azalt (çarpışma efekti)

@@ -1,6 +1,5 @@
-[gd_scene load_steps=129 format=4 uid="uid://bfrvqi0n722wn"]
+[gd_scene load_steps=128 format=4 uid="uid://bfrvqi0n722wn"]
 
-[ext_resource type="Script" uid="uid://bkney68ed3a82" path="res://Scripts/BridgeController.gd" id="1_14i42"]
 [ext_resource type="AnimationLibrary" uid="uid://dj65t6yhyqxdh" path="res://Scenes/a.res" id="2_1v1fg"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vby28"]
@@ -1357,8 +1356,7 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_dddf6")
 
-[node name="Bridge_GameTest" type="Node3D"]
-script = ExtResource("1_14i42")
+[node name="Bridge_GameTest" type="RigidBody3D"]
 
 [node name="Brige" type="MeshInstance3D" parent="."]
 transform = Transform3D(4.5051317, 0, 0, 0, 4.5051317, 0, 0, 0, 4.5051317, -17.675133, 0, 0)
@@ -1551,7 +1549,7 @@ mesh = SubResource("ArrayMesh_xnqs6")
 skeleton = NodePath("")
 
 [node name="Brige_cell_040" type="MeshInstance3D" parent="."]
-transform = Transform3D(0.7961666, -6.501e-05, 0.60507745, -0.00012532074, -1, 5.745742e-05, 0.60507745, -0.000121574434, -0.7961666, -12.056826, -4.897745, -5.138675)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.93188, -0.44846767, -0.70425713)
 mesh = SubResource("ArrayMesh_bjwgx")
 skeleton = NodePath("")
 

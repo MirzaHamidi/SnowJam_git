@@ -2,14 +2,14 @@
 
 [ext_resource type="Script" uid="uid://dy4x11r7rak0t" path="res://Scripts/ProjectileBall.gd" id="1_projectile_ball"]
 
-[sub_resource type="SphereShape3D" id="SphereShape3D_projectile"]
-radius = 0.15
-
 [sub_resource type="SphereMesh" id="SphereMesh_lal66"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_k1cl8"]
 albedo_color = Color(0.33395082, 0.33395082, 0.33395082, 0.047058824)
 metallic = 1.0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_projectile"]
+radius = 0.371
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lal66"]
 albedo_color = Color(1, 1, 0.32941177, 1)
@@ -36,21 +36,21 @@ size = Vector3(2.175, 1.985, -1.715)
 [node name="ProjectileBall" type="Area3D" groups=["projectile"]]
 script = ExtResource("1_projectile_ball")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-shape = SubResource("SphereShape3D_projectile")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="CollisionShape3D"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.49693608, 0, 0, 0, 0.49693608, 0, 0, 0, 0.49693608, 0, 0, 0)
 mesh = SubResource("SphereMesh_lal66")
-skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_k1cl8")
 
-[node name="OmniLight3D" type="OmniLight3D" parent="CollisionShape3D/MeshInstance3D"]
+[node name="OmniLight3D" type="OmniLight3D" parent="MeshInstance3D"]
 light_color = Color(0.9101174, 0.2726218, 0.8133022, 1)
 light_energy = 16.0
 light_size = 0.573
 light_specular = 16.0
 omni_range = 0.785
 omni_attenuation = 2.553
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_projectile")
 
 [node name="MuzzleFlash" type="GPUParticles3D" parent="."]
 transform = Transform3D(0.0015875542, 0.9885573, -0.15083846, -0.010403847, 0.15084682, 0.9885025, 0.9999447, 2.9002398e-11, 0.010524274, 0.08801687, 0.37814665, 0.18257177)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://xoro5hxk7sns"]
+[gd_scene load_steps=18 format=3 uid="uid://xoro5hxk7sns"]
 
 [ext_resource type="Script" uid="uid://d1vsyl4q41rhi" path="res://Scripts/main_menu.gd" id="1_28flt"]
 [ext_resource type="AudioStream" uid="uid://bmnigt1qcoemf" path="res://Assets/müzikler/müzik 1.wav" id="2_48xlc"]
@@ -10,6 +10,26 @@
 [ext_resource type="Texture2D" uid="uid://bmnc1hbeo1o0h" path="res://Assets/UI/settingss yıkılmış.png" id="5_vr1f0"]
 [ext_resource type="Texture2D" uid="uid://d15sxui0sgnqr" path="res://Assets/UI/exit yıkılmış.png" id="7_t1dhk"]
 [ext_resource type="Texture2D" uid="uid://bxltopifqtap6" path="res://Assets/UI/credits yıkılmış.png" id="8_5egv6"]
+[ext_resource type="Texture2D" uid="uid://h05pxbx3uyyi" path="res://Assets/Background/bckgrnd 1.png" id="10_m3bi6"]
+[ext_resource type="Texture2D" uid="uid://ctxiscj7vlhmn" path="res://Assets/Background/bckgrnd 2.png" id="11_wyh8j"]
+[ext_resource type="Texture2D" uid="uid://eopcjl78qo7a" path="res://Assets/Background/witch.png" id="12_ujyyl"]
+[ext_resource type="Texture2D" uid="uid://bwb7g0rhyrddw" path="res://Assets/Background/man1.png" id="13_mkpwh"]
+[ext_resource type="Texture2D" uid="uid://cl3sv544mjst5" path="res://Assets/Background/man2.png" id="14_4nkqq"]
+[ext_resource type="Texture2D" uid="uid://c0uwlwvhaj7eh" path="res://Assets/Background/man3.png" id="15_ehtkc"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_6dk6o"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("10_m3bi6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_wyh8j")
+}],
+"loop": true,
+"name": &"default",
+"speed": 2.0
+}]
 
 [node name="Main_Menu" type="Node2D"]
 script = ExtResource("1_28flt")
@@ -21,6 +41,29 @@ exit_idle_icon = ExtResource("4_yhxw7")
 exit_press_icon = ExtResource("7_t1dhk")
 credit_idle_icon = ExtResource("8_5egv6")
 credit_press_icon = ExtResource("5_trj04")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(956, 543)
+sprite_frames = SubResource("SpriteFrames_6dk6o")
+autoplay = "default"
+frame_progress = 0.69562787
+
+[node name="Witch" type="Sprite2D" parent="."]
+position = Vector2(1237, 439.99988)
+scale = Vector2(0.68333334, 0.68333334)
+texture = ExtResource("12_ujyyl")
+
+[node name="Man1" type="Sprite2D" parent="."]
+position = Vector2(1745, 550)
+texture = ExtResource("13_mkpwh")
+
+[node name="Man2" type="Sprite2D" parent="."]
+position = Vector2(950, 534)
+texture = ExtResource("14_4nkqq")
+
+[node name="Man3" type="Sprite2D" parent="."]
+position = Vector2(1248, 758)
+texture = ExtResource("15_ehtkc")
 
 [node name="Buttons" type="Node" parent="."]
 

@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://dgpoc40wpb7fj" path="res://Scenes/Test/crosshair.tscn" id="3_mur85"]
 [ext_resource type="PackedScene" path="res://Scenes/Test/player_health_bar.tscn" id="4_foqjc"]
 [ext_resource type="PackedScene" uid="uid://4kur8mdstp8t" path="res://Scenes/Test/cubetest.tscn" id="5_f3juq"]
-[ext_resource type="Script" uid="uid://dl80itipigpyl" path="res://Scripts/inside_level.gd" id="6_inside"]
+[ext_resource type="Script" path="res://Scripts/inside_level.gd" id="6_inside"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_i1q3u"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)

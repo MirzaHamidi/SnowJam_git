@@ -32,7 +32,10 @@ size = Vector3(2.175, 1.985, -1.715)
 script = ExtResource("1_enemy_shooter")
 acceleration = 0.6
 projectile_scene = ExtResource("3_projectile")
-projectile_speed = 6.99
+projectile_speed = 18.0
+projectile_damage = 20
+max_range = 40.0
+debug_enabled = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
