@@ -1,6 +1,10 @@
 extends Area3D
 
 ## ProjectileBall - EnemyShooter'dan fırlatılan kırmızı top (deflect edilebilir, sarıya döner)
+
+# KESİN: Signal'lar (sadece bildirim, gameplay değiştirmez)
+signal deflected
+signal destroyed
 ## 
 ## REFACTOR NOTES:
 ## 1) Debug log'lar debug_enabled flag ile kontrol edilir
@@ -57,14 +61,21 @@ var damage_multiplier: int = 1
 # GODOT CALLBACKS
 # ============================================
 func _ready() -> void:
+	# DEBUG: Projectile ROOT tipi
+	print("[Projectile] ready type=", get_class(), " root=", name)
+	
 	add_to_group("projectile")
 	_initialize_life_timer()
 	_setup_mesh_instance()
 	_apply_red_material()
 	
-	# Collision'ı bir frame sonra aktif et (spawn collision'ı önlemek için)
-	# Önce collision mask'i ayarla ama signal'ları sonra bağla
-	_setup_collision_mask(false)
+	# Area3D'ler birbirini algılamak için monitorable = true olmalı (BlockArea projectile'ı algılayabilmek için)
+	monitorable = true
+	
+	# TEST AMAÇLI: Collision layer/mask ALL
+	collision_layer = 4294967295
+	collision_mask = 4294967295
+	print("[Projectile] TEST: collision_layer=ALL mask=ALL monitorable=", monitorable)
 	
 	# Signal'ları bir frame sonra bağla (spawn collision'ı önlemek için)
 	call_deferred("_connect_signals")
@@ -73,16 +84,25 @@ func _ready() -> void:
 	monitoring = false
 	call_deferred("_enable_monitoring")
 	
-	if debug_enabled:
-		print("[PROJECTILE] Spawned at position: ", global_position, " color=RED, enemy-collision=OFF")
+	print("[Projectile] Spawned at position: ", global_position, " color=RED, enemy-collision=OFF")
 
 
 func _physics_process(delta: float) -> void:
+	# Velocity 0 ise hareket etme (henüz setup çağrılmamış olabilir)
+	if velocity.length() < 0.01:
+		return
+	
+	# ZORUNLU STATE: is_deflected true ise yön tekrar hesaplanmayacak
+	# (homing / follow / aim logic DEVRE DIŞI)
+	if is_deflected:
+		# Deflect edildikten sonra velocity sabit kalır, overwrite edilmez
+		pass
+	
 	life_timer -= delta
 	if life_timer <= 0.0:
 		if debug_enabled:
 			print("[PROJECTILE] Life time expired, destroying")
-		queue_free()
+		_destroy_projectile()
 		return
 	
 	# Projectile hareketi (gravity'den etkilenmez - Area3D olduğu için)
@@ -92,7 +112,7 @@ func _physics_process(delta: float) -> void:
 	if _is_out_of_bounds():
 		if debug_enabled:
 			print("[PROJECTILE] Out of bounds (x=", global_position.x, " z=", global_position.z, " y=", global_position.y, "), destroying")
-		queue_free()
+		_destroy_projectile()
 		return
 
 # ============================================
@@ -117,9 +137,10 @@ func setup(direction: Vector3, projectile_speed: float, projectile_damage: int, 
 
 func deflect(dir: Vector3, force: float, source: Node) -> void:
 	"""Projectile'i deflect et (kalkan tarafından çağrılır)."""
+	print("[Projectile] deflect() called. is_deflected=", is_deflected, " dir=", dir, " force=", force)
+	
 	if is_deflected:
-		if debug_enabled:
-			print("[PROJECTILE] Already deflected, ignoring duplicate deflect call")
+		print("[Projectile] Already deflected, ignoring duplicate deflect call")
 		return
 	
 	is_deflected = true
@@ -135,9 +156,11 @@ func deflect(dir: Vector3, force: float, source: Node) -> void:
 	apply_color(YELLOW_COLOR)
 	_setup_collision_mask(true)
 	
-	if debug_enabled:
-		print("[PROJECTILE] Deflected -> yellow, enemy-collision ON, dmg x2")
-		print("[PROJECTILE] Deflected! new_velocity=", velocity, " direction=", dir.normalized(), " force=", force)
+	# KESİN: Deflect signal'ı emit et
+	deflected.emit()
+	
+	print("[Projectile] deflected OK -> yellow, enemy-collision ON, dmg x2")
+	print("[Projectile] Deflected! new_velocity=", velocity, " direction=", dir.normalized(), " force=", force)
 
 
 func apply_color(color: Color) -> void:
@@ -161,8 +184,7 @@ func _connect_signals() -> void:
 func _enable_monitoring() -> void:
 	"""Collision monitoring'i aktif et (spawn collision'ı önlemek için bir frame sonra)."""
 	monitoring = true
-	if debug_enabled:
-		print("[PROJECTILE] Monitoring enabled after spawn delay")
+	print("[Projectile] Monitoring enabled. monitoring=", monitoring, " monitorable=", monitorable, " layer=", collision_layer, " mask=", collision_mask)
 
 
 func _initialize_life_timer() -> void:
@@ -188,51 +210,97 @@ func _apply_red_material() -> void:
 
 func _setup_collision_mask(enable_enemy: bool) -> void:
 	var mask = 0
-	mask |= (1 << (LAYER_WORLD - 1))
-	mask |= (1 << (LAYER_SHIELD - 1))
+	# Layer 1: World, Shield ve Enemy (hepsi layer 1'de)
+	mask |= (1 << (LAYER_WORLD - 1))  # Layer 1: World, Shield ve Enemy
 	
 	if enable_enemy:
-		mask |= (1 << (LAYER_ENEMY - 1))
+		# Enemy'ler de layer 1'de olduğu için zaten mask'te var
+		# Player'ı kaldır
 		mask &= ~(1 << (LAYER_PLAYER - 1))
 	else:
+		# Player layer'ını ekle
 		mask |= (1 << (LAYER_PLAYER - 1))
-		mask &= ~(1 << (LAYER_ENEMY - 1))
 	
 	collision_mask = mask
 	
-	if debug_enabled:
-		print("[PROJECTILE] Collision mask updated. Enemy enabled: ", enable_enemy)
+	print("[PROJECTILE] Collision mask updated. Enemy enabled: ", enable_enemy, " mask=", mask, " (Layer 1 = World+Shield+Enemy)")
 
 # ============================================
 # PRIVATE HELPERS - COLLISION HANDLING
 # ============================================
 func _on_body_entered(body: Node) -> void:
+	print("[Projectile] body_entered:", body.name, " type=", body.get_class(), " groups=", body.get_groups(), " is_deflected=", is_deflected)
+	
+	# Shield ile collision kontrolü (en önce)
+	if body.is_in_group("shield"):
+		var shield = body
+		if shield.has_method("get_deflect_direction_with_assist"):
+			# Shield tutuluyor mu kontrol et
+			if shield.has_method("is_shield_held") and shield.is_shield_held():
+				print("[PROJECTILE] Hit shield body, deflecting...")
+				# Deflect direction'ı al
+				var deflect_dir = shield.get_deflect_direction_with_assist()
+				var deflect_force = shield.deflect_force if "deflect_force" in shield else 26.0
+				deflect(deflect_dir, deflect_force, shield)
+				# Shield'in consume_block metodunu çağır
+				if shield.has_method("consume_block"):
+					shield.consume_block()
+				return
+	
 	_handle_collision(body)
 
 
 func _on_area_entered(area: Area3D) -> void:
+	print("[Projectile] area_entered:", area.name, " type=", area.get_class(), " groups=", area.get_groups(), " is_deflected=", is_deflected)
+	
+	# BlockArea veya shield ile collision (Area3D olarak)
 	if area.name == "BlockArea":
-		return
+		var shield = area.get_parent()
+		if shield and shield.is_in_group("shield"):
+			print("[Projectile] Hit BlockArea, shield found:", shield.name)
+			# ShieldItem zaten _try_deflect'i çağıracak, burada sadece log
+			return
 	
 	_handle_collision(area)
 
 
 func _handle_collision(target: Node) -> void:
+	print("[Projectile] _handle_collision:", target.name, " type=", target.get_class(), " is_deflected=", is_deflected)
+	
+	# Shield/BlockArea kontrolü (en önce kontrol et)
+	if _is_shield(target):
+		# Shield deflect işlemi ShieldItem tarafından yapılacak
+		# Burada sadece return et, deflect zaten ShieldItem'de yapılıyor
+		print("[Projectile] Collision with shield, ignoring (deflect already handled)")
+		return
+	
 	if _is_player(target):
 		_hit_player(target)
 		return
 	
 	if _is_enemy(target):
+		print("[Projectile] Enemy detected, calling _hit_enemy")
 		_hit_enemy(target)
 		return
 	
 	if _is_world(target):
 		_hit_world()
 		return
+	
+	print("[Projectile] Unknown collision target, ignoring")
 
 
 func _is_player(target: Node) -> bool:
 	return target.is_in_group("player") or (target.get_parent() and target.get_parent().is_in_group("player"))
+
+
+func _is_shield(target: Node) -> bool:
+	"""Shield veya BlockArea mı kontrol et."""
+	if target.name == "BlockArea":
+		var shield = target.get_parent()
+		if shield and shield.is_in_group("shield"):
+			return true
+	return target.is_in_group("shield") or (target.get_parent() and target.get_parent().is_in_group("shield"))
 
 
 func _is_enemy(target: Node) -> bool:
@@ -240,19 +308,21 @@ func _is_enemy(target: Node) -> bool:
 
 
 func _is_world(target: Node) -> bool:
-	return target is StaticBody3D or (target is CharacterBody3D and not target.is_in_group("player") and not target.is_in_group("enemy"))
+	# Sadece StaticBody3D'leri world olarak algıla, CharacterBody3D'leri değil
+	# (CharacterBody3D'ler enemy veya player olabilir)
+	return target is StaticBody3D
 
 
 func _hit_player(target: Node) -> void:
 	if is_deflected:
 		if debug_enabled:
 			print("[PROJECTILE] Deflected projectile hit player, ignoring damage")
-		queue_free()
+		_destroy_projectile()
 		return
 	
 	var player = _find_player_root(target)
 	if not player:
-		queue_free()
+		_destroy_projectile()
 		return
 	
 	if player.has_method("take_damage"):
@@ -263,7 +333,7 @@ func _hit_player(target: Node) -> void:
 		if debug_enabled:
 			print("[PROJECTILE] Hit player but no take_damage method found!")
 	
-	queue_free()
+	_destroy_projectile()
 
 
 func _find_player_root(target: Node) -> Node:
@@ -281,29 +351,27 @@ func _find_player_root(target: Node) -> Node:
 
 func _hit_enemy(target: Node) -> void:
 	if not is_deflected:
-		if debug_enabled:
-			print("[PROJECTILE] ERROR: Non-deflected projectile hit enemy (should not happen)!")
-		queue_free()
+		print("[PROJECTILE] ERROR: Non-deflected projectile hit enemy (should not happen)!")
+		_destroy_projectile()
 		return
 	
 	var enemy = find_enemy_root(target)
 	if not enemy:
-		if debug_enabled:
-			print("[PROJECTILE] Hit enemy collider but could not find enemy root!")
-		queue_free()
+		print("[PROJECTILE] Hit enemy collider but could not find enemy root! Target: ", target.name, " class: ", target.get_class())
+		_destroy_projectile()
 		return
 	
 	# Deflect edilmiş projectile kendi sahibini (orijinal shooter) vurmamalı
 	if original_shooter and enemy == original_shooter:
-		if debug_enabled:
-			print("[PROJECTILE] Deflected projectile hit its original owner (", enemy.name, "), ignoring to prevent self-damage!")
-		queue_free()
+		print("[PROJECTILE] Deflected projectile hit its original owner (", enemy.name, "), ignoring to prevent self-damage!")
+		_destroy_projectile()
 		return
 	
 	var final_damage = base_damage * damage_multiplier
+	print("[PROJECTILE] Deflected projectile hitting enemy: ", enemy.name, " damage=", final_damage, " (base=", base_damage, " x multiplier=", damage_multiplier, ")")
 	_apply_damage_to_enemy(enemy, final_damage)
 	_apply_knockback_to_enemy(enemy)
-	queue_free()
+	_destroy_projectile()
 
 
 func find_enemy_root(node: Node) -> Node:
@@ -324,15 +392,12 @@ func find_enemy_root(node: Node) -> Node:
 func _apply_damage_to_enemy(enemy: Node, damage: int) -> void:
 	if enemy.has_method("take_damage"):
 		enemy.take_damage(damage)
-		if debug_enabled:
-			print("[PROJECTILE] Hit enemy: ", enemy.name, " damage=", damage)
+		print("[PROJECTILE] Hit enemy: ", enemy.name, " damage=", damage)
 	elif enemy.has_method("hit"):
 		enemy.hit(damage)
-		if debug_enabled:
-			print("[PROJECTILE] Hit enemy: ", enemy.name, " damage=", damage, " (via hit method)")
+		print("[PROJECTILE] Hit enemy: ", enemy.name, " damage=", damage, " (via hit method)")
 	else:
-		if debug_enabled:
-			print("[PROJECTILE] Hit enemy but no take_damage/hit method found!")
+		print("[PROJECTILE] Hit enemy but no take_damage/hit method found! Enemy: ", enemy.name, " class: ", enemy.get_class())
 
 
 func _apply_knockback_to_enemy(enemy: Node) -> void:
@@ -351,10 +416,26 @@ func _apply_knockback_to_enemy(enemy: Node) -> void:
 func _hit_world() -> void:
 	if debug_enabled:
 		print("[PROJECTILE] Hit world, destroyed!")
-	queue_free()
+	_destroy_projectile()
 
 # ============================================
 # PRIVATE HELPERS - UTILITY
 # ============================================
 func _is_out_of_bounds() -> bool:
-	return abs(global_position.x) > MAP_BOUNDS or abs(global_position.z) > MAP_BOUNDS or abs(global_position.y) > MAP_BOUNDS
+	# MAP_BOUNDS çok küçük olabilir, daha büyük bir değer kullan
+	var bounds = 100.0  # Daha büyük bir sınır
+	return abs(global_position.x) > bounds or abs(global_position.z) > bounds or abs(global_position.y) > 50.0
+
+
+func _destroy_projectile() -> void:
+	"""KESİN: Projectile'ı yok et (her yok oluş yolunda çağrılır)."""
+	# Signal emit et (shooter'a bildir)
+	destroyed.emit()
+	queue_free()
+
+
+func _destroy_projectile() -> void:
+	"""KESİN: Projectile'ı yok et (her yok oluş yolunda çağrılır)."""
+	# Signal emit et (shooter'a bildir)
+	destroyed.emit()
+	queue_free()

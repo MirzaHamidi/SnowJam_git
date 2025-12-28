@@ -21,10 +21,10 @@ signal broken(shield: Node)
 @export var deflect_force: float = 26.0
 
 @export_group("Aim Assist")
-@export var aim_max_distance: float = 25.0
-@export var aim_cone_angle_deg: float = 25.0
-@export var aim_strength: float = 0.65
-@export var los_required: bool = false
+@export var aim_max_distance: float = 30.0  # Güvenli default
+@export var aim_cone_angle_deg: float = 30.0  # Güvenli default
+@export var aim_strength: float = 0.7  # Güvenli default
+@export var los_required: bool = false  # Şimdilik false
 
 @export_group("Physics (Held State)")
 @export var held_gravity_scale: float = 0.2
@@ -138,11 +138,16 @@ func get_blocks_left() -> int:
 
 func get_deflect_direction_with_assist() -> Vector3:
 	"""Kalkanın gösterdiği yönü döndür (aim assist ile enemy hedefleme)."""
+	print("[DEFLECT] get_deflect_direction_with_assist() called")
+	
 	if not is_held or not held_by:
+		print("[AIM] shield not held -> fallback")
 		return _get_fallback_direction()
 	
 	var camera = _find_camera()
+	print("[AIM] cam_null=", camera == null)
 	if not camera:
+		print("[AIM] camera not found -> fallback")
 		return _get_fallback_direction()
 	
 	var origin = camera.global_transform.origin
@@ -150,10 +155,11 @@ func get_deflect_direction_with_assist() -> Vector3:
 	
 	var best_target = _find_best_enemy_target(origin, fwd)
 	if best_target:
-		return _calculate_aim_assist_direction(origin, fwd, best_target)
+		var dir = _calculate_aim_assist_direction(origin, fwd, best_target)
+		print("[DEFLECT] using aim dir=", dir, " target=", best_target.name)
+		return dir
 	else:
-		if debug_enabled:
-			print("[AIM] no target -> forward")
+		print("[AIM] no target -> forward")
 		return fwd
 
 # ============================================
@@ -355,18 +361,34 @@ func _find_camera() -> Camera3D:
 	if not is_held or not held_by:
 		return null
 	
+	# Önce viewport'tan camera al (fallback)
+	var viewport_cam = get_viewport().get_camera_3d()
+	if viewport_cam:
+		print("[AIM] Using viewport camera: ", viewport_cam.name)
+		return viewport_cam
+	
 	var player_node = held_by
 	if player_node is CharacterBody3D:
-		return player_node.get_node_or_null("Camera3D")
+		var cam = player_node.get_node_or_null("Camera3D")
+		if cam:
+			print("[AIM] Using player CharacterBody3D camera: ", cam.name)
+			return cam
 	elif player_node is Node3D:
 		var character_body = player_node.get_node_or_null("CharacterBody3D")
 		if character_body:
-			return character_body.get_node_or_null("Camera3D")
+			var cam = character_body.get_node_or_null("Camera3D")
+			if cam:
+				print("[AIM] Using player Node3D->CharacterBody3D camera: ", cam.name)
+				return cam
 	
 	var player_grab = player_node.get_node_or_null("PlayerGrab")
 	if player_grab and "camera" in player_grab:
-		return player_grab.camera
+		var cam = player_grab.camera
+		if cam:
+			print("[AIM] Using PlayerGrab camera: ", cam.name)
+			return cam
 	
+	print("[AIM] WARNING: No camera found!")
 	return null
 
 
@@ -380,6 +402,11 @@ func _find_best_enemy_target(origin: Vector3, fwd: Vector3) -> Node:
 	var cone_angle_rad = deg_to_rad(aim_cone_angle_deg)
 	
 	var enemies = get_tree().get_nodes_in_group("enemy")
+	print("[AIM] enemies_total=", enemies.size())
+	
+	var candidates_in_range = 0
+	var candidates_in_cone = 0
+	
 	for enemy in enemies:
 		if not is_instance_valid(enemy) or enemy == held_by:
 			continue
@@ -391,11 +418,16 @@ func _find_best_enemy_target(origin: Vector3, fwd: Vector3) -> Node:
 		if dist > aim_max_distance:
 			continue
 		
+		candidates_in_range += 1
+		
 		dir_to_enemy = dir_to_enemy.normalized()
-		var angle = acos(fwd.dot(dir_to_enemy))
+		var dot = fwd.dot(dir_to_enemy)
+		var angle = acos(clamp(dot, -1.0, 1.0))
 		
 		if angle > cone_angle_rad:
 			continue
+		
+		candidates_in_cone += 1
 		
 		if los_required and not _check_line_of_sight(origin, enemy_pos):
 			continue
@@ -404,6 +436,16 @@ func _find_best_enemy_target(origin: Vector3, fwd: Vector3) -> Node:
 		if score < best_score:
 			best_score = score
 			best_target = enemy
+			print("[AIM] candidate: ", enemy.name, " dot=", dot, " dist=", dist, " score=", score)
+	
+	print("[AIM] candidates_in_range=", candidates_in_range, " candidates_in_cone=", candidates_in_cone)
+	
+	if best_target:
+		var enemy_pos = best_target.global_position + Vector3.UP * ENEMY_CHEST_OFFSET
+		var dir_to_enemy = (enemy_pos - origin).normalized()
+		var dot = fwd.dot(dir_to_enemy)
+		var dist = (enemy_pos - origin).length()
+		print("[AIM] chosen=", best_target.name, " dot=", dot, " dist=", dist)
 	
 	return best_target
 
