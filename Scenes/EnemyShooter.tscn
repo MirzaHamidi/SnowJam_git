@@ -55,3 +55,11 @@ draw_pass_1 = SubResource("BoxMesh_muzzle")
 [node name="LineOfSight" type="RayCast3D" parent="."]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 1.9361151, 0)
 target_position = Vector3(0, 0, 50)
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.619827, 0)
+light_color = Color(0.69608027, 0.46310902, 0.96944445, 1)
+light_energy = 8.146
+light_indirect_energy = 2.709
+light_specular = 17.41
+omni_range = 1.590152

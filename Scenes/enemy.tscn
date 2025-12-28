@@ -13,3 +13,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("CapsuleShape3D_enemy")
 
 [node name="Enemy_05(DanceAnim)_blend1" parent="." instance=ExtResource("2_1f0kj")]
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0862694, 0)
+light_color = Color(0.99955064, 0.15753317, 0.40138933, 1)
+light_energy = 29.555
+light_specular = 16.0
+omni_range = 1.9320887

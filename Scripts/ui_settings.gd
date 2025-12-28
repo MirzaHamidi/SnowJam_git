@@ -85,7 +85,14 @@ func _on_apply_pressed() -> void:
 
 
 func _on_back_pressed() -> void:
-	# Go back to whichever scene opened the settings (main menu or game)
+	# Eğer Settings autoload varsa ve pause durumundaysa, sadece unpause yap
+	if has_node("/root/Settings"):
+		var settings = get_node("/root/Settings")
+		if settings.is_game_paused():
+			settings.unpause_game()
+			return
+	
+	# Normal scene değişimi (main menu'den açıldıysa)
 	var state = get_node("/root/SceneState")
 	if state.previous_scene_path != "":
 		get_tree().change_scene_to_file(state.previous_scene_path)

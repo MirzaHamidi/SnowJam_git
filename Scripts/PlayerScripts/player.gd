@@ -4,6 +4,7 @@ extends CharacterBody3D
 const SPEED = 5.0
 const DASH_SPEED = 10.0
 const JUMP_VELOCITY = 4.5
+const MAX_UPWARD_VELOCITY = 4.5  # Jump height'ten yüksek uçmayı engelle
 const MOUSE_SENSITIVITY = 0.003
 const MAX_LOOK_UP = deg_to_rad(90)
 const MAX_LOOK_DOWN = deg_to_rad(-90)
@@ -176,13 +177,8 @@ func _input(event: InputEvent) -> void:
 		camera_rotation_x = clamp(camera_rotation_x, MAX_LOOK_DOWN, MAX_LOOK_UP)
 		camera.rotation.x = camera_rotation_x
 	
-	# ESC ile mouse'u serbest bırak/al
-	if event is InputEventKey and event.pressed:
-		if event.keycode == KEY_ESCAPE:
-			if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-			else:
-				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	# ESC tuşu artık Settings.gd tarafından yönetiliyor (pause/unpause)
+	# Mouse mode kontrolü Settings.gd'de yapılıyor
 	
 	# Sol tık ile cubetest fırlatma veya attack
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
@@ -261,6 +257,11 @@ func _physics_process(delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0, current_speed)
 
 	move_and_slide()
+	
+	# Jump height limiti: velocity.y'yi maksimum jump velocity ile sınırla
+	# Bu, yanlış çarpışmalarda player'ın çok yükseğe uçmasını engeller
+	if velocity.y > MAX_UPWARD_VELOCITY:
+		velocity.y = MAX_UPWARD_VELOCITY
 	
 	# RigidBody3D'leri it
 	_push_rigid_bodies()

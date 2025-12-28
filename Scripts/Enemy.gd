@@ -32,7 +32,7 @@ var wander_direction_timer: float = 0.0
 var wander_direction_change_interval: float = 2.0  # Rastgele yön değiştirme süresi
 var current_health: int = 20  # Mevcut can
 var is_dead: bool = false  # Ölü mü?
-var health_bar: Control = null  # Health bar UI referansı
+##var health_bar: Control = null  # Health bar UI referansı
 var damage_timer: float = 0.0  # Player'a damage verme timer'ı
 const DAMAGE_INTERVAL: float = 3.0  # 3 saniyede bir damage
 const DAMAGE_AMOUNT: int = 50  # Her damage'de verilen hasar
@@ -183,7 +183,7 @@ func _physics_process(delta: float) -> void:
 		if not is_on_floor():
 			velocity += get_gravity() * delta
 		move_and_slide()
-		_update_health_bar_position()
+		#_update_health_bar_position()
 		return
 	
 	# Player yoksa tekrar bul
@@ -210,7 +210,7 @@ func _physics_process(delta: float) -> void:
 	# Enemy aktif değilse (spawn animasyonu devam ediyorsa) sadece gravity uygula
 	if not is_active:
 		move_and_slide()
-		_update_health_bar_position()
+		#_update_health_bar_position()
 		return
 	
 	# Enemy aktif - normal hareket
@@ -239,7 +239,7 @@ func _physics_process(delta: float) -> void:
 	_update_selection_visual(delta)
 	
 	# Health bar pozisyonunu güncelle
-	_update_health_bar_position()
+	#_update_health_bar_position()
 
 
 func _normal_movement(delta: float) -> void:
@@ -455,39 +455,39 @@ func _setup_health_bar() -> void:
 	sprite.name = "HealthBar"
 	add_child(sprite)
 	
-	health_bar = control
+	#health_bar = control
 
 
-func _update_health_bar_position() -> void:
-	"""Health bar'ın pozisyonunu ve görünürlüğünü güncelle."""
-	if not health_bar or is_dead:
-		return
-	
-	var sprite = get_node_or_null("HealthBar")
-	if not sprite:
-		return
+##func _update_health_bar_position() -> void:
+	#"""Health bar'ın pozisyonunu ve görünürlüğünü güncelle."""
+	#if not health_bar or is_dead:
+		#return
+	#
+	#var sprite = get_node_or_null("HealthBar")
+	#if not sprite:
+		#return
 	
 	# Health bar'ı her zaman kameraya doğru çevir (billboard zaten yapıyor ama emin olmak için)
 	# Sprite3D billboard özelliği zaten bunu yapıyor
 
 
-func _update_health_bar() -> void:
-	"""Health bar'ın görsel durumunu güncelle."""
-	if not health_bar or is_dead:
-		# Health bar'ı gizle
-		var sprite = get_node_or_null("HealthBar")
-		if sprite:
-			sprite.visible = false
-		return
-	
-	var fill = health_bar.get_node_or_null("HealthFill")
-	if not fill:
-		return
-	
-	# Health bar'ı göster
-	var sprite = get_node_or_null("HealthBar")
-	if sprite:
-		sprite.visible = true
+#func _update_health_bar() -> void:
+	#"""Health bar'ın görsel durumunu güncelle."""
+	#if not health_bar or is_dead:
+		## Health bar'ı gizle
+		#var sprite = get_node_or_null("HealthBar")
+		#if sprite:
+			#sprite.visible = false
+		#return
+	#
+	#var fill = health_bar.get_node_or_null("HealthFill")
+	#if not fill:
+		#return
+	#
+	## Health bar'ı göster
+	#var sprite = get_node_or_null("HealthBar")
+	#if sprite:
+		#sprite.visible = true
 	
 	# Health yüzdesini hesapla
 	var health_percent = float(current_health) / float(max_health)
@@ -534,7 +534,7 @@ func take_damage(amount: int, push_direction: Vector3 = Vector3.ZERO) -> void:
 		velocity.y += 2.0
 	
 	# Health bar'ı güncelle
-	_update_health_bar()
+	#_update_health_bar()
 	
 	# Health 0 olursa öl
 	if current_health <= 0:

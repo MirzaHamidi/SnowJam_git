@@ -1,61 +1,67 @@
-[gd_scene load_steps=4 format=3 uid="uid://xoro5hxk7sns"]
+[gd_scene load_steps=11 format=3 uid="uid://xoro5hxk7sns"]
 
 [ext_resource type="Script" uid="uid://d1vsyl4q41rhi" path="res://Scripts/main_menu.gd" id="1_28flt"]
 [ext_resource type="AudioStream" uid="uid://bmnigt1qcoemf" path="res://Assets/müzikler/müzik 1.wav" id="2_48xlc"]
-[ext_resource type="Texture2D" uid="uid://b35a7rvlk7vik" path="res://Assets/WitchIt2.png" id="3_1ehe0"]
+[ext_resource type="Texture2D" uid="uid://cdqn3eagq1pnb" path="res://Assets/UI/play normal.png" id="2_opfnp"]
+[ext_resource type="Texture2D" uid="uid://ctuirlhdu5vqd" path="res://Assets/UI/play yıkılmış.png" id="3_16hvj"]
+[ext_resource type="Texture2D" uid="uid://dmlbpxhc2g513" path="res://Assets/UI/settingss normal.png" id="3_cp0ys"]
+[ext_resource type="Texture2D" uid="uid://dwg2l71f4t6s4" path="res://Assets/UI/exit normal.png" id="4_yhxw7"]
+[ext_resource type="Texture2D" uid="uid://c0jgy3lh6q8ip" path="res://Assets/UI/credits normal.png" id="5_trj04"]
+[ext_resource type="Texture2D" uid="uid://bmnc1hbeo1o0h" path="res://Assets/UI/settingss yıkılmış.png" id="5_vr1f0"]
+[ext_resource type="Texture2D" uid="uid://d15sxui0sgnqr" path="res://Assets/UI/exit yıkılmış.png" id="7_t1dhk"]
+[ext_resource type="Texture2D" uid="uid://bxltopifqtap6" path="res://Assets/UI/credits yıkılmış.png" id="8_5egv6"]
 
 [node name="Main_Menu" type="Node2D"]
 script = ExtResource("1_28flt")
+play_idle_icon = ExtResource("2_opfnp")
+play_press_icon = ExtResource("3_16hvj")
+settings_idle_icon = ExtResource("3_cp0ys")
+settings_press_icon = ExtResource("5_vr1f0")
+exit_idle_icon = ExtResource("4_yhxw7")
+exit_press_icon = ExtResource("7_t1dhk")
+credit_idle_icon = ExtResource("8_5egv6")
+credit_press_icon = ExtResource("5_trj04")
 
 [node name="Buttons" type="Node" parent="."]
 
 [node name="Play" type="Button" parent="Buttons"]
 texture_filter = 1
-offset_left = 886.0
-offset_top = 397.0
-offset_right = 1047.0
-offset_bottom = 510.0
+offset_left = 742.0
+offset_top = 279.0
+offset_right = 1190.0
+offset_bottom = 406.0
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 76
-text = "Play"
 flat = true
 
 [node name="Settings" type="Button" parent="Buttons"]
 texture_filter = 1
-offset_left = 820.0
-offset_top = 565.0
-offset_right = 1122.0
-offset_bottom = 678.0
+offset_left = 739.0
+offset_top = 446.0
+offset_right = 1187.0
+offset_bottom = 573.0
 theme_override_font_sizes/font_size = 76
-text = "Settings"
 flat = true
 
 [node name="Exit" type="Button" parent="Buttons"]
 texture_filter = 1
-offset_left = 911.0
-offset_top = 873.0
-offset_right = 1054.0
-offset_bottom = 986.0
+offset_left = 747.0
+offset_top = 754.0
+offset_right = 1199.0
+offset_bottom = 881.0
 theme_override_font_sizes/font_size = 76
-text = "Exit
+text = "
 "
 flat = true
 
 [node name="Credit" type="Button" parent="Buttons"]
-offset_left = 843.0
-offset_top = 714.0
-offset_right = 1111.0
-offset_bottom = 827.0
+offset_left = 743.0
+offset_top = 595.0
+offset_right = 1191.0
+offset_bottom = 722.0
 theme_override_font_sizes/font_size = 76
-text = "Credits"
 flat = true
 
 [node name="MainMenu_Music" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("2_48xlc")
 autoplay = true
-
-[node name="WitchIt2" type="Sprite2D" parent="."]
-texture_filter = 1
-position = Vector2(980, 204.00002)
-scale = Vector2(5, 5)
-texture = ExtResource("3_1ehe0")

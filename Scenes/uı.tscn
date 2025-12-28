@@ -1,22 +1,19 @@
 [gd_scene load_steps=2 format=3 uid="uid://ch7fj1exmeqpt"]
 
-[ext_resource type="Script" path="res://Scripts/ui_settings.gd" id="1_4q3si"]
+[ext_resource type="Script" uid="uid://mo3srslmgx5c" path="res://Scripts/ui_settings.gd" id="1_4q3si"]
 
 [node name="UiRoot" type="CanvasLayer"]
 
 [node name="Panel" type="Panel" parent="."]
-anchor_left = 0.0
-anchor_top = 0.0
+self_modulate = Color(2.9083786, 2.9083786, 2.9083786, 0)
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 0.0
-offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
-anchor_left = 0.0
-anchor_top = 0.0
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 640.0
@@ -27,54 +24,67 @@ theme_override_constants/separation = 20
 alignment = 1
 
 [node name="Title" type="Label" parent="Panel/VBox"]
+layout_mode = 2
 text = "Settings"
 horizontal_alignment = 1
 
 [node name="ResolutionHBox" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
 theme_override_constants/separation = 20
 alignment = 1
 
 [node name="ResolutionLabel" type="Label" parent="Panel/VBox/ResolutionHBox"]
+layout_mode = 2
 text = "Resolution"
 
 [node name="ResolutionOptions" type="OptionButton" parent="Panel/VBox/ResolutionHBox"]
+layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="WindowModeHBox" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
 theme_override_constants/separation = 20
 alignment = 1
 
 [node name="WindowModeLabel" type="Label" parent="Panel/VBox/WindowModeHBox"]
+layout_mode = 2
 text = "Window Mode"
 
 [node name="WindowModeOptions" type="OptionButton" parent="Panel/VBox/WindowModeHBox"]
+layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="VolumeHBox" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
 theme_override_constants/separation = 20
 alignment = 1
 
 [node name="VolumeLabel" type="Label" parent="Panel/VBox/VolumeHBox"]
+layout_mode = 2
 text = "Master Volume"
 
 [node name="VolumeSlider" type="HSlider" parent="Panel/VBox/VolumeHBox"]
-min_value = 0.0
+layout_mode = 2
+size_flags_horizontal = 3
 max_value = 1.0
 step = 0.01
 value = 1.0
-size_flags_horizontal = 3
 
 [node name="ButtonsHBox" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
 theme_override_constants/separation = 40
 alignment = 1
 
 [node name="ApplyButton" type="Button" parent="Panel/VBox/ButtonsHBox"]
+layout_mode = 2
 text = "Apply"
 
 [node name="BackButton" type="Button" parent="Panel/VBox/ButtonsHBox"]
+layout_mode = 2
 text = "Back"
 
 [node name="MainMenuButton" type="Button" parent="Panel/VBox/ButtonsHBox"]
+layout_mode = 2
 text = "Main Menu"
 
 [node name="SettingsController" type="Node" parent="."]
