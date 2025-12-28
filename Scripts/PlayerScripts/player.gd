@@ -21,6 +21,7 @@ var health_bar_ui: Control = null  # Health bar UI referansı
 var selected_enemy: Node3D = null  # Seçili enemy
 var grabbed_cube: RigidBody3D = null  # Tutulan cubetest
 var grab_distance: float = 3.0  # Tutma mesafesi
+var can_attack: bool = true  # Attack cooldown kontrolü
 
 @onready var camera: Camera3D = $Camera3D
 @onready var raycast: RayCast3D = $Camera3D/RayCast3D
@@ -155,17 +156,26 @@ func _on_walk_audio_finished() -> void:
 			walk_audio.play()
 
 func _setup_asa_animation() -> void:
-	"""AnimationPlayer'ın animasyon bitiş signal'ını bağla."""
+	"""AnimationPlayer'ın animasyon bitiş ve başlangıç signal'larını bağla."""
 	if asa_animation_player:
-		# Signal zaten bağlı değilse bağla
+		# Animation finished signal
 		if not asa_animation_player.animation_finished.is_connected(_on_asa_animation_finished):
 			asa_animation_player.animation_finished.connect(_on_asa_animation_finished)
+		# Animation started signal (RESET animasyonu başladığında attack'ı aktif et)
+		if not asa_animation_player.animation_started.is_connected(_on_asa_animation_started):
+			asa_animation_player.animation_started.connect(_on_asa_animation_started)
 
 func _on_asa_animation_finished(anim_name: StringName) -> void:
 	"""asa_attack animasyonu bitince RESET animasyonuna dön."""
-	if anim_name == "asa_attack":
+	if anim_name == "attack":
 		if asa_animation_player and asa_animation_player.has_animation("RESET"):
 			asa_animation_player.play("RESET")
+
+func _on_asa_animation_started(anim_name: StringName) -> void:
+	"""Animasyon başladığında çağrılır - RESET animasyonuna geçildiğinde attack'ı aktif et."""
+	if anim_name == "RESET":
+		can_attack = true
+		print("[Player] Attack cooldown ended - can attack again")
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -263,6 +273,14 @@ func _physics_process(delta: float) -> void:
 	if velocity.y > MAX_UPWARD_VELOCITY:
 		velocity.y = MAX_UPWARD_VELOCITY
 	
+	# Yatay velocity limiti: DASH_SPEED'i geçmesin
+	var horizontal_velocity = Vector2(velocity.x, velocity.z)
+	var horizontal_speed = horizontal_velocity.length()
+	if horizontal_speed > DASH_SPEED:
+		var clamped_velocity = horizontal_velocity.normalized() * DASH_SPEED
+		velocity.x = clamped_velocity.x
+		velocity.z = clamped_velocity.y
+	
 	# RigidBody3D'leri it
 	_push_rigid_bodies()
 	
@@ -320,13 +338,20 @@ func _push_rigid_bodies() -> void:
 
 func _cast_magic_spell() -> void:
 	"""Büyücü partikül efektiyle ateş eder - crosshair'ın olduğu yöne (ekranın ortasına)."""
+	# Attack cooldown kontrolü - animasyon bitmeden yeni attack yapılamaz
+	if not can_attack:
+		return
+	
 	if not magic_particles or not camera:
 		return
 	
+	# Attack başladığında cooldown'u aktif et
+	can_attack = false
+	
 	# asa_attack animasyonunu oynat
 	if asa_animation_player:
-		if asa_animation_player.has_animation("asa_attack"):
-			asa_animation_player.play("asa_attack")
+		if asa_animation_player.has_animation("attack"):
+			asa_animation_player.play("attack")
 	
 	# Spell sesini çal
 	if spell_audio:

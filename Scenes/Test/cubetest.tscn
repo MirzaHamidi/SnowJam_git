@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://4kur8mdstp8t"]
+[gd_scene load_steps=5 format=3 uid="uid://4kur8mdstp8t"]
 
 [ext_resource type="Script" path="res://Scripts/cubetest.gd" id="1_cubetest"]
 
@@ -6,36 +6,30 @@
 friction = 0.5
 bounce = 0.2
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_e6m6s"]
+[sub_resource type="BoxMesh" id="BoxMesh_tiljo"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_collision"]
-size = Vector3(1.2, 1.2, 1.2)
-
-[sub_resource type="BoxMesh" id="BoxMesh_tiljo"]
+size = Vector3(1.2, 1.2875, 1.2)
 
 [node name="cubetest" type="Node3D"]
 
 [node name="RigidBody3D" type="RigidBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.011772752, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6977646, 0)
 physics_material_override = SubResource("PhysicsMaterial_e6m6s")
 linear_damp = 0.1
 angular_damp = 0.1
 script = ExtResource("1_cubetest")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5036515, 0)
-shape = SubResource("BoxShape3D_e6m6s")
-
 [node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5036515, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.053299785, 0)
 mesh = SubResource("BoxMesh_tiljo")
 skeleton = NodePath("../..")
 
 [node name="CollisionArea" type="Area3D" parent="RigidBody3D"]
+visible = false
 collision_layer = 0
-collision_mask = 1
-monitoring = true
 monitorable = false
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D/CollisionArea"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.043749988, 0)
 shape = SubResource("BoxShape3D_collision")

@@ -63,7 +63,7 @@ func _ready() -> void:
 			original_material = mesh.material
 	
 	# Health bar'ı oluştur
-	call_deferred("_setup_health_bar")
+	#call_deferred("_setup_health_bar")
 	
 	# Player'ı bul (eğer set_player ile set edilmediyse)
 	if not player:
@@ -417,44 +417,44 @@ func activate() -> void:
 	set_physics_process(true)
 
 
-func _setup_health_bar() -> void:
-	"""Health bar UI'yi oluştur ve enemy'nin üstüne yerleştir."""
-	# SubViewport ve Control oluştur
-	var subviewport = SubViewport.new()
-	subviewport.size = Vector2i(200, 30)
-	subviewport.transparent_bg = true
-	
-	var control = Control.new()
-	control.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	subviewport.add_child(control)
-	
-	# Health bar background (kırmızı)
-	var bg = ColorRect.new()
-	bg.color = Color(0.3, 0.0, 0.0, 0.8)
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	control.add_child(bg)
-	
-	# Health bar fill (yeşil)
-	var fill = ColorRect.new()
-	fill.color = Color(0.0, 1.0, 0.0, 0.9)
-	fill.set_anchors_and_offsets_preset(Control.PRESET_LEFT_WIDE)
-	fill.anchor_right = 1.0
-	fill.offset_left = 2
-	fill.offset_top = 2
-	fill.offset_right = -2
-	fill.offset_bottom = -2
-	control.add_child(fill)
-	fill.name = "HealthFill"
-	
-	# SubViewport'u Sprite3D'e ekle
-	var sprite = Sprite3D.new()
-	sprite.texture = subviewport.get_texture()
-	sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	sprite.pixel_size = 0.01
-	sprite.position = Vector3(0, 2.5, 0)  # Enemy'nin üstünde
-	sprite.name = "HealthBar"
-	add_child(sprite)
-	
+#func _setup_health_bar() -> void:
+	#"""Health bar UI'yi oluştur ve enemy'nin üstüne yerleştir."""
+	## SubViewport ve Control oluştur
+	#var subviewport = SubViewport.new()
+	#subviewport.size = Vector2i(200, 30)
+	#subviewport.transparent_bg = true
+	#
+	#var control = Control.new()
+	#control.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	#subviewport.add_child(control)
+	#
+	## Health bar background (kırmızı)
+	#var bg = ColorRect.new()
+	#bg.color = Color(0.3, 0.0, 0.0, 0.8)
+	#bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	#control.add_child(bg)
+	#
+	## Health bar fill (yeşil)
+	#var fill = ColorRect.new()
+	#fill.color = Color(0.0, 1.0, 0.0, 0.9)
+	#fill.set_anchors_and_offsets_preset(Control.PRESET_LEFT_WIDE)
+	#fill.anchor_right = 1.0
+	#fill.offset_left = 2
+	#fill.offset_top = 2
+	#fill.offset_right = -2
+	#fill.offset_bottom = -2
+	#control.add_child(fill)
+	#fill.name = "HealthFill"
+	#
+	## SubViewport'u Sprite3D'e ekle
+	#var sprite = Sprite3D.new()
+	#sprite.texture = subviewport.get_texture()
+	#sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	#sprite.pixel_size = 0.01
+	#sprite.position = Vector3(0, 2.5, 0)  # Enemy'nin üstünde
+	#sprite.name = "HealthBar"
+	#add_child(sprite)
+	#
 	#health_bar = control
 
 
@@ -490,20 +490,20 @@ func _setup_health_bar() -> void:
 		#sprite.visible = true
 	
 	# Health yüzdesini hesapla
-	var health_percent = float(current_health) / float(max_health)
-	health_percent = clamp(health_percent, 0.0, 1.0)
-	
-	# Fill genişliğini güncelle (offset_right kullanarak)
-	var bar_width = 196  # 200 - 4 (margin)
-	fill.offset_right = -bar_width + (bar_width * health_percent)
-	
-	# Renk değiştir (yeşil -> sarı -> kırmızı)
-	if health_percent > 0.5:
-		fill.color = Color(0.0, 1.0, 0.0, 0.9)  # Yeşil
-	elif health_percent > 0.25:
-		fill.color = Color(1.0, 1.0, 0.0, 0.9)  # Sarı
-	else:
-		fill.color = Color(1.0, 0.0, 0.0, 0.9)  # Kırmızı
+	#var health_percent = float(current_health) / float(max_health)
+	#health_percent = clamp(health_percent, 0.0, 1.0)
+	#
+	## Fill genişliğini güncelle (offset_right kullanarak)
+	#var bar_width = 196  # 200 - 4 (margin)
+	#fill.offset_right = -bar_width + (bar_width * health_percent)
+	#
+	## Renk değiştir (yeşil -> sarı -> kırmızı)
+	#if health_percent > 0.5:
+		#fill.color = Color(0.0, 1.0, 0.0, 0.9)  # Yeşil
+	#elif health_percent > 0.25:
+		#fill.color = Color(1.0, 1.0, 0.0, 0.9)  # Sarı
+	#else:
+		#fill.color = Color(1.0, 0.0, 0.0, 0.9)  # Kırmızı
 
 
 func take_damage(amount: int, push_direction: Vector3 = Vector3.ZERO) -> void:

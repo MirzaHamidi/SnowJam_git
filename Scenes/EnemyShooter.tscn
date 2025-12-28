@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://chq3vh5kxiey6" path="res://Scripts/EnemyShooter.gd" id="1_enemy_shooter"]
 [ext_resource type="PackedScene" uid="uid://mo6wihkr2pbx" path="res://Assets/Enemy/Silver Armor/enemy_05(dance_anim)_blend_1.tscn" id="2_1f0kj"]
-[ext_resource type="PackedScene" path="res://Scenes/Projectile.tscn" id="3_projectile"]
+[ext_resource type="PackedScene" uid="uid://ck66cle6ecnq5" path="res://Scenes/Projectile.tscn" id="3_projectile"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_enemy"]
 
@@ -10,20 +10,29 @@
 albedo_color = Color(1, 1, 0.32941177, 1)
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_muzzle"]
+particle_flag_rotate_y = true
+particle_flag_damping_as_friction = true
+angle_min = 1.0728835e-05
+angle_max = 1.0728835e-05
 direction = Vector3(0, 0, -1)
-spread = 5.69
+spread = 26.495
 initial_velocity_min = 5.0
-initial_velocity_max = 386.47
-scale_min = 0.1
-scale_max = 0.3
+initial_velocity_max = 198.23999
+scale_min = 0.099999994
+scale_max = 0.29999998
 color = Color(1, 0.5, 0, 1)
+collision_mode = 1
+collision_friction = 0.0
+collision_bounce = 0.0
 
 [sub_resource type="BoxMesh" id="BoxMesh_muzzle"]
-size = Vector3(2.175, 1.985, 2.25)
+size = Vector3(2.175, 1.985, -1.715)
 
 [node name="EnemyShooter" type="CharacterBody3D"]
 script = ExtResource("1_enemy_shooter")
+acceleration = 0.6
 projectile_scene = ExtResource("3_projectile")
+projectile_speed = 6.99
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
@@ -34,19 +43,21 @@ shape = SubResource("CapsuleShape3D_enemy")
 [node name="Enemy_05(DanceAnim)_blend1" parent="Visual" instance=ExtResource("2_1f0kj")]
 
 [node name="Muzzle" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0.8)
+transform = Transform3D(0.081468865, -0.9966759, 0, 0.9966759, 0.081468865, 0, 0, 0, 1, 0.20651907, 1.5, -0.05158621)
 
 [node name="MuzzleFlash" type="GPUParticles3D" parent="Muzzle"]
-transform = Transform3D(0.010524274, 0, -0.9999446, 0, 1, 0, 0.9999446, 0, 0.010524274, -0.3371849, 0.37814665, -0.66901445)
+transform = Transform3D(0.0015875542, 0.9885573, -0.15083846, -0.010403847, 0.15084682, 0.9885025, 0.9999447, 2.9002398e-11, 0.010524274, 0.08801687, 0.37814665, 0.18257177)
 visible = false
 material_override = SubResource("StandardMaterial3D_3l2bp")
-emitting = false
-amount = 30
+amount = 20
+amount_ratio = 0.1456
 lifetime = 0.28
-speed_scale = 0.84
+preprocess = 1.5699999999999998
+speed_scale = 0.86
 explosiveness = 1.0
 randomness = 1.0
-visibility_aabb = AABB(-1, -1, -1, 2, 2, 2)
+visibility_aabb = AABB(-1, -1, 0.405, 2, 2, 0.44)
+trail_lifetime = 0.92
 process_material = SubResource("ParticleProcessMaterial_muzzle")
 draw_pass_1 = SubResource("BoxMesh_muzzle")
 

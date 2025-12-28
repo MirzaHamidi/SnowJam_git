@@ -159,8 +159,8 @@ func _setup_nodes() -> void:
 		push_error("EnemyShooter - Muzzle node not found!")
 	else:
 		muzzle_flash = muzzle.get_node_or_null("MuzzleFlash")
-		if not muzzle_flash and debug_enabled:
-			print("WARNING: EnemyShooter - MuzzleFlash particle not found!")
+	if not muzzle_flash and debug_enabled:
+		print("WARNING: EnemyShooter - MuzzleFlash particle not found!")
 	
 	_validate_projectile_scene()
 
@@ -368,14 +368,17 @@ func _shoot() -> void:
 		push_error("EnemyShooter - No current scene found!")
 		return
 	
-	current_scene.add_child(projectile_instance)
-	projectile_instance.global_position = muzzle.global_position
-	
 	var target_pos = player.global_position + aim_offset
 	var direction = (target_pos - muzzle.global_position).normalized()
 	
+	# Projectile'ı spawn et ve pozisyonunu biraz ileriye al (spawn collision'ı önlemek için)
+	current_scene.add_child(projectile_instance)
+	# Spawn pozisyonunu direction yönünde daha büyük bir offset ile ileriye al
+	var spawn_offset = direction * 0.5  # 0.5 birim ileriye al (spawn collision'ı önlemek için)
+	projectile_instance.global_position = muzzle.global_position + spawn_offset
+	
 	_configure_projectile(projectile_instance, direction)
-	_trigger_muzzle_flash()
+	_trigger_muzzle_flash(direction)
 	
 	fire_cooldown = fire_rate
 	
@@ -426,10 +429,26 @@ func _configure_projectile_legacy(projectile: Node, direction: Vector3) -> void:
 		print("[ENEMYSHOOTER] Projectile fired with direct property assignment")
 
 
-func _trigger_muzzle_flash() -> void:
-	if muzzle_flash:
-		muzzle_flash.restart()
-		muzzle_flash.emitting = true
+func _trigger_muzzle_flash(direction: Vector3) -> void:
+	if not muzzle_flash:
+		return
+	
+	# MuzzleFlash partiküllerinin yönünü projectile yönüne göre ayarla
+	var material = muzzle_flash.process_material as ParticleProcessMaterial
+	if material:
+		var new_material = material.duplicate() as ParticleProcessMaterial
+		if new_material:
+			# Direction'ı local space'e çevir (muzzle node'una göre)
+			var local_direction = muzzle.to_local(muzzle.global_position + direction) - muzzle.to_local(muzzle.global_position)
+			local_direction = local_direction.normalized()
+			new_material.direction = local_direction
+			muzzle_flash.process_material = new_material
+	
+	muzzle_flash.restart()
+	muzzle_flash.emitting = true
+	
+	if debug_enabled:
+		print("[ENEMYSHOOTER] MuzzleFlash triggered with direction: ", direction)
 
 # ============================================
 # PRIVATE HELPERS - UTILITY

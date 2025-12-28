@@ -48,6 +48,7 @@ var material: StandardMaterial3D = null
 # ============================================
 var velocity: Vector3 = Vector3.ZERO
 var projectile_owner: Node = null
+var original_shooter: Node = null  # Orijinal shooter (deflect edildikten sonra da korunur, kendi kendine vurmayı önlemek için)
 var is_deflected: bool = false
 var life_timer: float = 0.0
 var damage_multiplier: int = 1
@@ -57,11 +58,20 @@ var damage_multiplier: int = 1
 # ============================================
 func _ready() -> void:
 	add_to_group("projectile")
-	_connect_signals()
 	_initialize_life_timer()
 	_setup_mesh_instance()
 	_apply_red_material()
+	
+	# Collision'ı bir frame sonra aktif et (spawn collision'ı önlemek için)
+	# Önce collision mask'i ayarla ama signal'ları sonra bağla
 	_setup_collision_mask(false)
+	
+	# Signal'ları bir frame sonra bağla (spawn collision'ı önlemek için)
+	call_deferred("_connect_signals")
+	
+	# Collision detection'ı bir frame geciktir (spawn anında hemen collision algılamasın)
+	monitoring = false
+	call_deferred("_enable_monitoring")
 	
 	if debug_enabled:
 		print("[PROJECTILE] Spawned at position: ", global_position, " color=RED, enemy-collision=OFF")
@@ -75,6 +85,8 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 		return
 	
+	# Projectile hareketi (gravity'den etkilenmez - Area3D olduğu için)
+	# Velocity sabit kalır, sadece direction * speed ile hareket eder
 	global_position += velocity * delta
 	
 	if _is_out_of_bounds():
@@ -88,16 +100,19 @@ func _physics_process(delta: float) -> void:
 # ============================================
 func setup(direction: Vector3, projectile_speed: float, projectile_damage: int, shooter: Node = null) -> void:
 	"""Projectile ayarlarını yap (EnemyShooter'dan çağrılır)."""
-	velocity = direction.normalized() * projectile_speed
+	# Direction'ı normalize et ve velocity'yi ayarla
+	var normalized_direction = direction.normalized()
+	velocity = normalized_direction * projectile_speed
 	speed = projectile_speed
 	base_damage = projectile_damage
 	projectile_owner = shooter
+	original_shooter = shooter  # Orijinal shooter'ı sakla (deflect edildikten sonra da korunur)
 	is_deflected = false
 	damage_multiplier = 1
 	_setup_collision_mask(false)
 	
 	if debug_enabled:
-		print("[PROJECTILE] Setup: velocity=", velocity, " speed=", projectile_speed, " base_damage=", base_damage)
+		print("[PROJECTILE] Setup: direction=", normalized_direction, " velocity=", velocity, " speed=", projectile_speed, " base_damage=", base_damage, " original_shooter=", shooter)
 
 
 func deflect(dir: Vector3, force: float, source: Node) -> void:
@@ -111,8 +126,11 @@ func deflect(dir: Vector3, force: float, source: Node) -> void:
 	projectile_owner = source
 	damage_multiplier = DEFLECT_DAMAGE_MULTIPLIER
 	
-	velocity = dir.normalized() * force
-	global_position += dir.normalized() * DEFLECT_OFFSET
+	# Deflect direction'ı normalize et ve velocity'yi ayarla
+	var normalized_dir = dir.normalized()
+	velocity = normalized_dir * force
+	speed = force  # Speed'i de güncelle
+	global_position += normalized_dir * DEFLECT_OFFSET
 	
 	apply_color(YELLOW_COLOR)
 	_setup_collision_mask(true)
@@ -138,6 +156,13 @@ func apply_color(color: Color) -> void:
 func _connect_signals() -> void:
 	body_entered.connect(_on_body_entered)
 	area_entered.connect(_on_area_entered)
+
+
+func _enable_monitoring() -> void:
+	"""Collision monitoring'i aktif et (spawn collision'ı önlemek için bir frame sonra)."""
+	monitoring = true
+	if debug_enabled:
+		print("[PROJECTILE] Monitoring enabled after spawn delay")
 
 
 func _initialize_life_timer() -> void:
@@ -265,6 +290,13 @@ func _hit_enemy(target: Node) -> void:
 	if not enemy:
 		if debug_enabled:
 			print("[PROJECTILE] Hit enemy collider but could not find enemy root!")
+		queue_free()
+		return
+	
+	# Deflect edilmiş projectile kendi sahibini (orijinal shooter) vurmamalı
+	if original_shooter and enemy == original_shooter:
+		if debug_enabled:
+			print("[PROJECTILE] Deflected projectile hit its original owner (", enemy.name, "), ignoring to prevent self-damage!")
 		queue_free()
 		return
 	
